@@ -9,15 +9,18 @@ from .util import rl_utils
 from tqdm import tqdm
 import os
 from stable_baselines3.common.monitor import Monitor
+from sim.wrapper import MyWrapper
     
 class Qnet(torch.nn.Module):
     ''' 只有一层隐藏层的Q网络 '''
     def __init__(self, state_dim, hidden_dim, action_dim):
         super(Qnet, self).__init__()
+        self.state_dim = state_dim
         self.fc1 = torch.nn.Linear(state_dim, hidden_dim)
         self.fc2 = torch.nn.Linear(hidden_dim, action_dim)
 
     def forward(self, x):
+        x = x.reshape(-1, self.state_dim)
         x = F.relu(self.fc1(x))  # 隐藏层使用ReLU激活函数
         return self.fc2(x)
     
@@ -118,11 +121,44 @@ class CustomDQN(Trainer):
         self.train_cfg["device"] = torch.device(self.train_cfg["device"])
 
         self.env = Monitor(gym.make(**env_cfg))
+        # self.env = Monitor(MyWrapper())
+
         self.model = self._init_model()
 
+    def _obs_space(self):
+        # 1. Box空间 (连续)
+        if isinstance(self.env.observation_space, gym.spaces.Box):
+            if len(self.env.observation_space.shape) == 1:
+                # 1D观察空间
+                state_dim = self.env.observation_space.shape[0]
+            else:
+                # 多维观察空间 (如图像)
+                state_dim = np.prod(self.env.observation_space.shape)
+                
+        # 2. Discrete空间 (离散)
+        elif isinstance(self.env.observation_space, gym.spaces.Discrete):
+            state_dim = 1
+            
+        # 3. Dict空间 (字典)
+        elif isinstance(self.env.observation_space, gym.spaces.Dict):
+            state_dim = sum(np.prod(space.shape) for space in self.env.observation_space.spaces.values())
+        return state_dim
+    
+    def _action_space(self):
+         # 动作空间
+        if isinstance(self.env.action_space, gym.spaces.Discrete):
+            # Discrete(4) 表示有4个动作
+            action_dim = self.env.action_space.n
+        else:
+            action_dim = self.env.action_space.shape[0]
+        return action_dim
+
     def _init_model(self):
-        state_dim = self.env.observation_space.shape[0]
-        action_dim = self.env.action_space.n
+        # 3. 打印实际状态和动作示例
+        # print(self.env.observation_space.sample())
+        # print(self.env.action_space.sample())
+
+        state_dim, action_dim = self._obs_space(), self._action_space()
         return CustomDQNModel(state_dim
                                , self.train_cfg["hidden_dim"]
                                , action_dim

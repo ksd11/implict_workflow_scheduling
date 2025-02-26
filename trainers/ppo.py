@@ -11,22 +11,23 @@ import numpy as np
 import torch
 from .trainer import Trainer,CfgType
 from .network.custom_net import CustomNetwork
+from .network.custom_cnn import CustomCNN
 
 
-class TensorboardCallback(BaseCallback):
-    def __init__(self, verbose=0):
-        super(TensorboardCallback, self).__init__(verbose)
+# class TensorboardCallback(BaseCallback):
+#     def __init__(self, verbose=0):
+#         super(TensorboardCallback, self).__init__(verbose)
 
-    def _on_step(self) -> bool:
-        # Log scalar value (here a random variable)
-        # value = np.random.random()
-        # self.logger.record('random_value', value)
-        return True
+#     def _on_step(self) -> bool:
+#         # Log scalar value (here a random variable)
+#         # value = np.random.random()
+#         # self.logger.record('random_value', value)
+#         return True
 
-    def _on_rollout_end(self) -> None:
-        # Log mean reward
-        mean_reward = np.mean(self.locals['rewards'])
-        self.logger.record('rollout/mean_reward', mean_reward)
+#     def _on_rollout_end(self) -> None:
+#         # Log mean reward
+#         mean_reward = np.mean(self.locals['rewards'])
+#         self.logger.record('rollout/mean_reward', mean_reward)
 
 
 # env_name = "CartPole-v0"
@@ -43,20 +44,37 @@ class PPO(Trainer):
         self.model = self._init_model(train_cfg)    
         
     def _init_model(self, train_cfg: CfgType):
+        # model_kwargs = {
+        #     # "policy_kwargs": policy_kwargs,
+        #     "env": self.env,
+        #     "policy": CustomNetwork
+        # }
+        # # self._set(train_cfg, model_kwargs, "policy")
+        # self._set(train_cfg, model_kwargs, "learning_rate")
+        # self._set(train_cfg, model_kwargs, "n_steps")
+        # self._set(train_cfg, model_kwargs, "batch_size")
+        # self._set(train_cfg, model_kwargs, "n_epochs")
+        # self._set(train_cfg, model_kwargs, "gamma")
+        # self._set(train_cfg, model_kwargs, "verbose")
+        # self._set(train_cfg, model_kwargs, "tensorboard_log")
+        # self._set(train_cfg, model_kwargs, "device")
+
+        # model_kwargs = {
+        #     "policy": "CnnPolicy",
+        #     "env": self.env,
+        #     "policy_kwargs": {
+        #         'features_extractor_class': CustomCNN,
+        #         'features_extractor_kwargs': {
+        #             'hidden_dim': 8
+        #         },
+        #     },
+        # }
+
         model_kwargs = {
-            # "policy_kwargs": policy_kwargs,
+            "policy": "MlpPolicy",
             "env": self.env,
-            "policy": CustomNetwork
         }
-        # self._set(train_cfg, model_kwargs, "policy")
-        self._set(train_cfg, model_kwargs, "learning_rate")
-        self._set(train_cfg, model_kwargs, "n_steps")
-        self._set(train_cfg, model_kwargs, "batch_size")
-        self._set(train_cfg, model_kwargs, "n_epochs")
-        self._set(train_cfg, model_kwargs, "gamma")
-        self._set(train_cfg, model_kwargs, "verbose")
-        self._set(train_cfg, model_kwargs, "tensorboard_log")
-        self._set(train_cfg, model_kwargs, "device")
+
         return ST_PPO(**model_kwargs)
 
     def _set(self, source, dest, key):
@@ -64,13 +82,17 @@ class PPO(Trainer):
             dest[key] = source[key]
 
     def train(self):
+        self.pre_train()
     
-        eval_callback = EvalCallback(self.env, best_model_save_path='./model/',
-                                    log_path='./logs/', eval_freq=500,
-                                    deterministic=True, render=False)
-        tensorboard_callback = TensorboardCallback()
+        # eval_callback = EvalCallback(self.env, best_model_save_path='./model/',
+                                    # log_path='./logs/', eval_freq=500,
+                                    # deterministic=True, render=False)
+        # tensorboard_callback = TensorboardCallback()
 
         # 开始训练
-        self.model.learn(total_timesteps=self.train_cfg["total_timesteps"], progress_bar=["progress_bar"], callback=[eval_callback, tensorboard_callback])
+        # self.model.learn(total_timesteps=self.train_cfg["total_timesteps"], progress_bar=["progress_bar"], callback=[eval_callback, tensorboard_callback])
+        self.model.learn(total_timesteps=self.train_cfg["total_timesteps"], progress_bar=["progress_bar"])
         
         self.post_train()
+
+

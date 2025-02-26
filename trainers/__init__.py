@@ -19,19 +19,18 @@ def model_path(model, env):
 
 def play_a_game(cfg):
     path = model_path(cfg['trainer']['trainer_cls'], cfg['env']['id'])
-    trainer = make_trainer(cfg)
+    trainer: Trainer = make_trainer(cfg)
     model = trainer.load(path).get_model()
     env = trainer.env
 
-    # mean_reward, std_reward = evaluate_policy(model, env)
-    # print(f"mean_reward={mean_reward:.2f} +/- {std_reward:.2f}")
+    # trainer.eval("Testing", n_eval_episodes=30, deterministic=True)
 
     state,_ = env.reset()
     reward_sum = 0
     done = False
 
     while not done:
-        action, _state = model.predict(state, deterministic=False)
+        action, _state = model.predict(state, deterministic=True)
         state, reward, terminated, truncated, info = env.step(int(action))
         done = terminated or truncated
         reward_sum += reward

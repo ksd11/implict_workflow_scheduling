@@ -13,18 +13,27 @@ class Trainer(ABC):
     def train():
         pass
 
-    def post_train(self):
-        # 策略评估，可以看到倒立摆在平稳运行了
-        mean_reward, std_reward = evaluate_policy(self.model, self.env, n_eval_episodes=10, render=False)
-        #env.close()
-        print("mean_reward:",mean_reward,"std_reward:",std_reward)
+    def pre_train(self):
+        self.eval("Before train...")
 
+    def post_train(self):
+        self.eval("After train...")
+        self.save("./model/"+self.train_cfg["trainer_cls"]+"/"+ self.env_cfg["id"] +".pkl")
+
+    def save(self, path: str):
         # 保存模型到相应的目录
-        self.model.save("./model/"+self.train_cfg["trainer_cls"]+"/"+ self.env_cfg["id"] +".pkl")
+        print("Saving model to "+path)
+        self.model.save(path)
 
     def load(self, path: str):
+        print("loading model from "+path)
         self.model.load(path)
         return self
+    
+    def eval(self, msg, n_eval_episodes=30, deterministic=False, render=False):
+        print(msg)
+        mean_reward, std_reward = evaluate_policy(self.model, self.env, n_eval_episodes=n_eval_episodes, deterministic=deterministic,render=render)
+        print("mean_reward:",mean_reward,"std_reward:",std_reward)
 
     def get_model(self):
         return self.model

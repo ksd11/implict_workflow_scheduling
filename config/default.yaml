@@ -23,16 +23,29 @@ trainer:
   # gamma: 0.99
   # verbose: 0            # verbose=1代表打印训练信息，如果是0为不打印，2为打印调试信息
   # tensorboard_log: "./tmp/tensorboard/"  # 训练数据保存目录，可以用tensorboard查看
-  # total_timesteps: 2e4
+  # total_timesteps: 1e4
   # progress_bar: True
   # device: "cuda"
 
+  # trainer_cls: "CustomDQN"
+  # lr: 2e-3
+  # num_episodes: 100
+  # hidden_dim : 128
+  # gamma: 0.98
+  # epsilon: 0.01
+  # target_update: 10
+  # buffer_size: 10000
+  # minimal_size: 500
+  # batch_size: 64
+  # max_action_count: 10 # 最多重复选择动作次数，超过此次数则选择默认
+  # device: "cuda"
+
   trainer_cls: "CustomDQN"
-  lr: 2e-3
+  lr: 2e-1
   num_episodes: 100
-  hidden_dim : 128
+  hidden_dim : 32
   gamma: 0.98
-  epsilon: 0.01
+  epsilon: 0.05
   target_update: 10
   buffer_size: 10000
   minimal_size: 500
@@ -132,8 +145,10 @@ env:
   # render_mode: "rgb_array"
   # map_name: "4x4"
   # is_slippery: false
-
-  id: "CartPole-v1"
+  
+  # id: "CartPole-v1"
+  # id: "CliffWalking-v0"
+  id: "MyWrapper-v0"
 
 
   
