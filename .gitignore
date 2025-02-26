@@ -1,0 +1,7 @@
+model/
+tmp/
+__pycache__/
+logs/
+data/
+test/
+.vscode/
