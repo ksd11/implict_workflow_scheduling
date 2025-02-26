@@ -5,7 +5,8 @@ import gymnasium as gym
 class MyWrapper(gym.Wrapper):
     metadata = {
         # "max_episode_steps": 200
-        "render_modes": ["rgb_array","human"]
+        "render_modes": ["rgb_array","human"],
+        "render_fps": 10
     }
 
     def __init__(self, render_mode="rgb_array"):

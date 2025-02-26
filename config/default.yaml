@@ -1,4 +1,4 @@
-trainer:
+# trainer:
   # trainer_cls: 'DQN'
   # policy: "MlpPolicy"                            # MlpPolicy定义策略网络为MLP网络
   # learning_rate: 5e-4
@@ -39,19 +39,6 @@ trainer:
   # batch_size: 64
   # max_action_count: 10 # 最多重复选择动作次数，超过此次数则选择默认
   # device: "cuda"
-
-  trainer_cls: "CustomDQN"
-  lr: 2e-1
-  num_episodes: 100
-  hidden_dim : 32
-  gamma: 0.98
-  epsilon: 0.05
-  target_update: 10
-  buffer_size: 10000
-  minimal_size: 500
-  batch_size: 64
-  max_action_count: 10 # 最多重复选择动作次数，超过此次数则选择默认
-  device: "cuda"
 
   # where the training happens (cpu, cuda, cuda:0, ...)
   # note: rollouts are always collected using only the CPU
@@ -131,7 +118,7 @@ agent:
     act_cls: 'Tanh'
 
 
-env:
+# env:
   # id: "LayerEdgeEnv-v0"
   # num_executors: 50
   # job_arrival_cap: 200
@@ -148,6 +135,27 @@ env:
   
   # id: "CartPole-v1"
   # id: "CliffWalking-v0"
+  # id: "MyWrapper-v0"
+
+trainer:
+  trainer_cls: 'DQN'
+  policy: "MlpPolicy"                            # MlpPolicy定义策略网络为MLP网络
+  learning_rate: 1e-3
+  batch_size: 64
+  buffer_size: 10000
+  learning_starts: 500
+  target_update_interval: 1000
+  policy_kwargs:  {}    # 这里代表隐藏层为2层256个节点数的网络
+  verbose: 0                   # verbose=1代表打印训练信息，如果是0为不打印，2为打印调试信息
+  tensorboard_log: "./tmp/tensorboard/"  # 训练数据保存目录，可以用tensorboard查看
+  total_timesteps: 1e4
+  progress_bar: True
+  tau: 0.8  #软更新的比例,1就是硬更新
+  gamma: 0.9
+  train_freq: [1, 'step'] # 训练频率
+  device: "cpu"
+
+env:
   id: "MyWrapper-v0"
 
 
