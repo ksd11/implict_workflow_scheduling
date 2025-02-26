@@ -12,6 +12,7 @@ import torch
 from .trainer import Trainer,CfgType
 from .network.custom_net import CustomNetwork
 from .network.custom_cnn import CustomCNN
+from sim.wrapper import MyWrapper
 
 
 # class TensorboardCallback(BaseCallback):
@@ -41,46 +42,15 @@ class PPO(Trainer):
     def __init__(self, agent_cfg: CfgType, env_cfg: CfgType, train_cfg: CfgType):
         super(PPO, self).__init__(agent_cfg, env_cfg, train_cfg)
         self.env = Monitor(gym.make(**env_cfg))
-        self.model = self._init_model(train_cfg)    
+        # self.env = MyWrapper()
+        # self.env = gym.make(**env_cfg)
+
+        params = [
+            "policy","learning_rate", "n_steps", "batch_size", "n_epochs",
+            "gamma", "verbose", "tensorboard_log", "device"
+        ]
+        self.model = self._init_model(model=ST_PPO, train_cfg=train_cfg, params=params)    
         
-    def _init_model(self, train_cfg: CfgType):
-        # model_kwargs = {
-        #     # "policy_kwargs": policy_kwargs,
-        #     "env": self.env,
-        #     "policy": CustomNetwork
-        # }
-        # # self._set(train_cfg, model_kwargs, "policy")
-        # self._set(train_cfg, model_kwargs, "learning_rate")
-        # self._set(train_cfg, model_kwargs, "n_steps")
-        # self._set(train_cfg, model_kwargs, "batch_size")
-        # self._set(train_cfg, model_kwargs, "n_epochs")
-        # self._set(train_cfg, model_kwargs, "gamma")
-        # self._set(train_cfg, model_kwargs, "verbose")
-        # self._set(train_cfg, model_kwargs, "tensorboard_log")
-        # self._set(train_cfg, model_kwargs, "device")
-
-        # model_kwargs = {
-        #     "policy": "CnnPolicy",
-        #     "env": self.env,
-        #     "policy_kwargs": {
-        #         'features_extractor_class': CustomCNN,
-        #         'features_extractor_kwargs': {
-        #             'hidden_dim': 8
-        #         },
-        #     },
-        # }
-
-        model_kwargs = {
-            "policy": "MlpPolicy",
-            "env": self.env,
-        }
-
-        return ST_PPO(**model_kwargs)
-
-    def _set(self, source, dest, key):
-        if key in source:
-            dest[key] = source[key]
-
     def train(self):
         self.pre_train()
     

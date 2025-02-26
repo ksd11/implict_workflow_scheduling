@@ -27,7 +27,11 @@ class Trainer(ABC):
 
     def load(self, path: str):
         print("loading model from "+path)
-        self.model.load(path)
+        # 有些模型会返回结果，有些不会
+        res =  self.model.load(path)
+        if res != None:
+            self.model = res
+        # self.model = self.model.__class__.load(path, env = self.env, print_system_info = True)
         return self
     
     def eval(self, msg, n_eval_episodes=30, deterministic=False, render=False):
@@ -37,3 +41,16 @@ class Trainer(ABC):
 
     def get_model(self):
         return self.model
+    
+    # 初始化模型
+    def _init_model(self, model, train_cfg, params: list):
+        model_kargs = {
+            "env": self.env
+        }
+        for param in params:
+            self._set(train_cfg, model_kargs, param)
+        return model(**model_kargs)
+
+    def _set(self, source, dest, key):
+        if key in source:
+            dest[key] = source[key]

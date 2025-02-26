@@ -23,18 +23,20 @@ def play_a_game(cfg):
     model = trainer.load(path).get_model()
     env = trainer.env
 
-    # trainer.eval("Testing", n_eval_episodes=30, deterministic=True)
+    trainer.eval("Testing", n_eval_episodes=10, deterministic=True)
 
-    state,_ = env.reset()
-    reward_sum = 0
-    done = False
+    return None
 
-    while not done:
-        action, _state = model.predict(state, deterministic=True)
-        state, reward, terminated, truncated, info = env.step(int(action))
-        done = terminated or truncated
-        reward_sum += reward
-        env.render()
+    # state,_ = env.reset()
+    # reward_sum = 0
+    # done = False
 
-    env.close()
-    return reward_sum
+    # while not done:
+    #     action, _state = model.predict(state, deterministic=True)
+    #     state, reward, terminated, truncated, info = env.step(int(action))
+    #     done = terminated or truncated
+    #     reward_sum += reward
+    #     env.render()
+
+    # env.close()
+    # return reward_sum

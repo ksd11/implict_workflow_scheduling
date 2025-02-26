@@ -137,26 +137,40 @@ agent:
   # id: "CliffWalking-v0"
   # id: "MyWrapper-v0"
 
+
+###################### example1 ##########
+# trainer:
+#   trainer_cls: 'DQN'
+#   policy: "MlpPolicy"                            # MlpPolicy定义策略网络为MLP网络
+#   learning_rate: 1e-3
+#   batch_size: 64
+#   buffer_size: 10000
+#   learning_starts: 500
+#   target_update_interval: 1000
+#   policy_kwargs:  {}    # 这里代表隐藏层为2层256个节点数的网络
+#   verbose: 0                   # verbose=1代表打印训练信息，如果是0为不打印，2为打印调试信息
+#   tensorboard_log: "./tmp/tensorboard/"  # 训练数据保存目录，可以用tensorboard查看
+#   total_timesteps: 1e4
+#   progress_bar: True
+#   tau: 0.8  #软更新的比例,1就是硬更新
+#   gamma: 0.9
+#   train_freq: [1, 'step'] # 训练频率
+#   device: "cpu"
+
+# env:
+#   id: "MyWrapper-v0"
+
+
+
+############## example 2 ############3
 trainer:
-  trainer_cls: 'DQN'
-  policy: "MlpPolicy"                            # MlpPolicy定义策略网络为MLP网络
-  learning_rate: 1e-3
-  batch_size: 64
-  buffer_size: 10000
-  learning_starts: 500
-  target_update_interval: 1000
-  policy_kwargs:  {}    # 这里代表隐藏层为2层256个节点数的网络
-  verbose: 0                   # verbose=1代表打印训练信息，如果是0为不打印，2为打印调试信息
-  tensorboard_log: "./tmp/tensorboard/"  # 训练数据保存目录，可以用tensorboard查看
-  total_timesteps: 1e4
+  trainer_cls: 'PPO'
+  policy: "MlpPolicy"
+  total_timesteps: 2e4
   progress_bar: True
-  tau: 0.8  #软更新的比例,1就是硬更新
-  gamma: 0.9
-  train_freq: [1, 'step'] # 训练频率
-  device: "cpu"
 
 env:
-  id: "MyWrapper-v0"
+  id: "CartPole-v1"
 
 
   

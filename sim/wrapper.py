@@ -10,7 +10,8 @@ class MyWrapper(gym.Wrapper):
     }
 
     def __init__(self, render_mode="rgb_array"):
-        env = gym.make('CliffWalking-v0', render_mode=render_mode)
+        # env = gym.make('CliffWalking-v0', render_mode=render_mode)
+        env = gym.make('CartPole-v1', render_mode=render_mode)
         super().__init__(env)
         self.env = env
         self.step_n = 0
@@ -22,7 +23,7 @@ class MyWrapper(gym.Wrapper):
 
     def step(self, action):
         state, reward, done, truncated, info = self.env.step(action)
-        self.step_n += 1
-        if self.step_n >= 200:
-            done = True
+        # self.step_n += 1
+        # if self.step_n >= 200:
+        #     done = True
         return state, reward, done, truncated, info
