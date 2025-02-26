@@ -23,13 +23,13 @@ trainer:
   # gamma: 0.99
   # verbose: 0            # verbose=1代表打印训练信息，如果是0为不打印，2为打印调试信息
   # tensorboard_log: "./tmp/tensorboard/"  # 训练数据保存目录，可以用tensorboard查看
-  # total_timesteps: 1e4
+  # total_timesteps: 2e4
   # progress_bar: True
   # device: "cuda"
 
   trainer_cls: "CustomDQN"
   lr: 2e-3
-  num_episodes: 50
+  num_episodes: 100
   hidden_dim : 128
   gamma: 0.98
   epsilon: 0.01

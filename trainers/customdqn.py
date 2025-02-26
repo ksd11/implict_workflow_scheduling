@@ -8,6 +8,7 @@ import gymnasium as gym
 from .util import rl_utils
 from tqdm import tqdm
 import os
+from stable_baselines3.common.monitor import Monitor
     
 class Qnet(torch.nn.Module):
     ''' 只有一层隐藏层的Q网络 '''
@@ -89,13 +90,26 @@ class CustomDQNModel:
             os.makedirs(directory)
         torch.save(self.q_net.state_dict(), path)
 
-    def predict(self, state, deterministic=True):
+    def predict(self, observation, state=None, episode_start=None, deterministic=True):
+        observation = np.array(observation).reshape(1, -1)  # 确保是2D数组
+            
         if deterministic:
-            state = torch.tensor([state], dtype=torch.float).to(self.device)
-            action = self.q_net(state).argmax().item()
-            return action, None
+            # 确定性预测
+            with torch.no_grad():
+                observation = torch.FloatTensor(observation).to(self.device)
+                q_values = self.q_net(observation)
+                action = q_values.argmax(dim=1).cpu().numpy()
         else:
-            return self.take_action(state), None
+            # epsilon-贪婪
+            if np.random.random() < self.epsilon:
+                action = np.array([np.random.randint(self.action_dim)])
+            else:
+                with torch.no_grad():
+                    observation = torch.FloatTensor(observation).to(self.device)
+                    q_values = self.q_net(observation)
+                    action = q_values.argmax(dim=1).cpu().numpy()
+
+        return action, state  # 返回形状为 (1,) 的numpy数组
 
 
 class CustomDQN(Trainer):
@@ -103,7 +117,7 @@ class CustomDQN(Trainer):
         super(CustomDQN, self).__init__(agent_cfg, env_cfg, train_cfg)
         self.train_cfg["device"] = torch.device(self.train_cfg["device"])
 
-        self.env = gym.make(**env_cfg)
+        self.env = Monitor(gym.make(**env_cfg))
         self.model = self._init_model()
 
     def _init_model(self):
@@ -131,7 +145,8 @@ class CustomDQN(Trainer):
                     done = False
                     while not done:
                         action = self.model.take_action(state)
-                        next_state, reward, done, _, _ = self.env.step(action)
+                        next_state, reward, termined, truncated, _ = self.env.step(action)
+                        done = termined | truncated
                         replay_buffer.add(state, action, reward, next_state, done)
                         state = next_state
                         episode_return += reward
@@ -156,6 +171,7 @@ class CustomDQN(Trainer):
                         })
                     pbar.update(1)
 
+        self.post_train()
         # 保存模型到相应的目录
-        self.model.save("./model/"+self.train_cfg["trainer_cls"]+"/"+ self.env_cfg["id"] +".pkl")
+        # self.model.save("./model/"+self.train_cfg["trainer_cls"]+"/"+ self.env_cfg["id"] +".pkl")
 

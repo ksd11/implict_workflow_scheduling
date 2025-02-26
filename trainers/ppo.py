@@ -2,6 +2,7 @@ from stable_baselines3 import PPO as ST_PPO
 from stable_baselines3.common.vec_env.dummy_vec_env import DummyVecEnv
 from stable_baselines3.common.vec_env import VecNormalize
 from stable_baselines3.common.evaluation import evaluate_policy
+from stable_baselines3.common.monitor import Monitor
 import gymnasium as gym
 # from leftenv import GoLeftEnv
 from sim.LayerEdgeEnv import LayerEdgeEnv
@@ -9,6 +10,7 @@ from stable_baselines3.common.callbacks import EvalCallback, BaseCallback
 import numpy as np
 import torch
 from .trainer import Trainer,CfgType
+from .network.custom_net import CustomNetwork
 
 
 class TensorboardCallback(BaseCallback):
@@ -37,12 +39,16 @@ class TensorboardCallback(BaseCallback):
 class PPO(Trainer):
     def __init__(self, agent_cfg: CfgType, env_cfg: CfgType, train_cfg: CfgType):
         super(PPO, self).__init__(agent_cfg, env_cfg, train_cfg)
-        self.env = gym.make(**env_cfg)
+        self.env = Monitor(gym.make(**env_cfg))
         self.model = self._init_model(train_cfg)    
         
     def _init_model(self, train_cfg: CfgType):
-        model_kwargs = {}
-        self._set(train_cfg, model_kwargs, "policy")
+        model_kwargs = {
+            # "policy_kwargs": policy_kwargs,
+            "env": self.env,
+            "policy": CustomNetwork
+        }
+        # self._set(train_cfg, model_kwargs, "policy")
         self._set(train_cfg, model_kwargs, "learning_rate")
         self._set(train_cfg, model_kwargs, "n_steps")
         self._set(train_cfg, model_kwargs, "batch_size")
@@ -51,7 +57,7 @@ class PPO(Trainer):
         self._set(train_cfg, model_kwargs, "verbose")
         self._set(train_cfg, model_kwargs, "tensorboard_log")
         self._set(train_cfg, model_kwargs, "device")
-        return ST_PPO(**model_kwargs, env=self.env)
+        return ST_PPO(**model_kwargs)
 
     def _set(self, source, dest, key):
         if key in source:

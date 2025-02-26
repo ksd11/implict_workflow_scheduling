@@ -3,6 +3,8 @@ from .dqn import DQN
 from .customdqn import CustomDQN
 from .trainer import Trainer,CfgType
 import gymnasium as gym
+from stable_baselines3.common.evaluation import evaluate_policy
+from stable_baselines3.common.monitor import Monitor
 
 def make_trainer(cfg):
     glob = globals()
@@ -17,9 +19,13 @@ def model_path(model, env):
 
 def play_a_game(cfg):
     path = model_path(cfg['trainer']['trainer_cls'], cfg['env']['id'])
-    model = make_trainer(cfg).load(path).get_model()
+    trainer = make_trainer(cfg)
+    model = trainer.load(path).get_model()
+    env = trainer.env
 
-    env = gym.make(**cfg['env'])
+    # mean_reward, std_reward = evaluate_policy(model, env)
+    # print(f"mean_reward={mean_reward:.2f} +/- {std_reward:.2f}")
+
     state,_ = env.reset()
     reward_sum = 0
     done = False
