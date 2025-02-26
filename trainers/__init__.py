@@ -1,5 +1,6 @@
 from .ppo import PPO
 from .dqn import DQN
+from .customdqn import CustomDQN
 from .trainer import Trainer,CfgType
 import gymnasium as gym
 

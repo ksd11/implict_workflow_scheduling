@@ -13,18 +13,31 @@ trainer:
   # progress_bar: True
   # device: "cuda"
 
-  trainer_cls: 'PPO'
-  policy: "MlpPolicy"                            # MlpPolicy定义策略网络为MLP网络
-  learning_rate: 5e-4
-  n_steps: 2048           # 运行N步后执行更新,buffer_size=n_steps*环境数量
-  batch_size: 128
-  n_epochs: 16             # 每次采用后训练次数
-  policy_kwargs: [256, 256]     # 这里代表隐藏层为2层256个节点数的网络
-  gamma: 0.99
-  verbose: 0            # verbose=1代表打印训练信息，如果是0为不打印，2为打印调试信息
-  tensorboard_log: "./tmp/tensorboard/"  # 训练数据保存目录，可以用tensorboard查看
-  total_timesteps: 1e4
-  progress_bar: True
+  # trainer_cls: 'PPO'
+  # policy: "MlpPolicy"                            # MlpPolicy定义策略网络为MLP网络
+  # learning_rate: 5e-4
+  # n_steps: 2048           # 运行N步后执行更新,buffer_size=n_steps*环境数量
+  # batch_size: 128
+  # n_epochs: 16             # 每次采用后训练次数
+  # policy_kwargs: [256, 256]     # 这里代表隐藏层为2层256个节点数的网络
+  # gamma: 0.99
+  # verbose: 0            # verbose=1代表打印训练信息，如果是0为不打印，2为打印调试信息
+  # tensorboard_log: "./tmp/tensorboard/"  # 训练数据保存目录，可以用tensorboard查看
+  # total_timesteps: 1e4
+  # progress_bar: True
+  # device: "cuda"
+
+  trainer_cls: "CustomDQN"
+  lr: 2e-3
+  num_episodes: 50
+  hidden_dim : 128
+  gamma: 0.98
+  epsilon: 0.01
+  target_update: 10
+  buffer_size: 10000
+  minimal_size: 500
+  batch_size: 64
+  max_action_count: 10 # 最多重复选择动作次数，超过此次数则选择默认
   device: "cuda"
 
   # where the training happens (cpu, cuda, cuda:0, ...)
@@ -114,11 +127,13 @@ env:
   # warmup_delay: 1000.
   # dataset: 'tpch'
   # mean_time_limit: 2.e+7
-  id: "FrozenLake-v1"
-  # render_mode: "human"
-  render_mode: "rgb_array"
-  map_name: "4x4"
-  is_slippery: false
+
+  # id: "FrozenLake-v1"
+  # render_mode: "rgb_array"
+  # map_name: "4x4"
+  # is_slippery: false
+
+  id: "CartPole-v1"
 
 
   

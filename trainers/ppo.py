@@ -38,17 +38,24 @@ class PPO(Trainer):
     def __init__(self, agent_cfg: CfgType, env_cfg: CfgType, train_cfg: CfgType):
         super(PPO, self).__init__(agent_cfg, env_cfg, train_cfg)
         self.env = gym.make(**env_cfg)
-        self.model = ST_PPO(
-            policy=train_cfg["policy"],
-            env=self.env,
-            learning_rate=train_cfg["learning_rate"],
-            n_steps=train_cfg["n_steps"], 
-            batch_size=train_cfg["batch_size"],  #采样数据量
-            n_epochs=train_cfg["n_epochs"],  #每次采样后训练的次数
-            gamma=train_cfg["gamma"],
-            verbose=train_cfg["verbose"],
-            tensorboard_log=train_cfg["tensorboard_log"],
-            device=train_cfg["device"])
+        self.model = self._init_model(train_cfg)    
+        
+    def _init_model(self, train_cfg: CfgType):
+        model_kwargs = {}
+        self._set(train_cfg, model_kwargs, "policy")
+        self._set(train_cfg, model_kwargs, "learning_rate")
+        self._set(train_cfg, model_kwargs, "n_steps")
+        self._set(train_cfg, model_kwargs, "batch_size")
+        self._set(train_cfg, model_kwargs, "n_epochs")
+        self._set(train_cfg, model_kwargs, "gamma")
+        self._set(train_cfg, model_kwargs, "verbose")
+        self._set(train_cfg, model_kwargs, "tensorboard_log")
+        self._set(train_cfg, model_kwargs, "device")
+        return ST_PPO(**model_kwargs, env=self.env)
+
+    def _set(self, source, dest, key):
+        if key in source:
+            dest[key] = source[key]
 
     def train(self):
     
