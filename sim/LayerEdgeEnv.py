@@ -305,10 +305,10 @@ class Cloud(Machine):
 class LayerEdgeEnv(gym.Env):
     def __init__(self, render_mode="human"):
         # N, L, C, Len
-        self.data = Data(5, 50, 20, 1000)
+        self.data = Data(5, 50, 20, 100)
         data = self.data
         N,L = data.N, data.L
-        obs_dim = N * (3*L+3) + N * (L+5)
+        obs_dim = N * (3*L+3) + 4 * N + L + 1
         act_dim = N+1
 
         self.observation_space = spaces.Box(
@@ -346,8 +346,8 @@ class LayerEdgeEnv(gym.Env):
             state.append(addLayerSize / machine.bandwidth) # 需要下载的时间
             state.append(max(self.timestamp, machine.download_finish_time)-self.timestamp) # waiting time
             state.append(task.cpu/machine.cpu) # 计算时间
-            state.extend(task.has_layer) # 包含的层
-            state.append(task.cpu) # request cpu resource
+        state.extend(task.has_layer) # 包含的层
+        state.append(task.cpu) # request cpu resource
 
         return np.array(state)
 
