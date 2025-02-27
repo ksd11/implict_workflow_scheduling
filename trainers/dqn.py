@@ -7,8 +7,8 @@ from stable_baselines3.common.callbacks import EvalCallback, BaseCallback
 import numpy as np
 from .trainer import Trainer,CfgType
 from stable_baselines3.common.monitor import Monitor
-from .network.custom_dqn import CustomQNetwork
-from .network.layer_dependent_dqn import LayerDependentQNetwork
+from .network.custom_dqn import CustomDQNPolicy
+from .network.layer_dependent_dqn import LayerDependentExtractor
 
 class DQN(Trainer):
     def __init__(self, agent_cfg: CfgType, env_cfg: CfgType, train_cfg: CfgType):
@@ -29,8 +29,13 @@ class DQN(Trainer):
             , "tensorboard_log"
             , "device"
         ]
+        if "policy_kwargs" in train_cfg and "features_extractor_class" in train_cfg["policy_kwargs"]:
+            extractor = train_cfg["policy_kwargs"]["features_extractor_class"]
+            glob = globals()
+            assert extractor in glob, f"'{extractor}' is not a valid extractor."
+            train_cfg["policy_kwargs"]["features_extractor_class"] = glob[extractor]
+        
         # train_cfg["policy"] = LayerDependentQNetwork
-        train_cfg["policy"] = CustomQNetwork
         self.model = self._init_model(model=ST_DQN, train_cfg=train_cfg, params=params)    
 
     def _set(self, source, dest, key):

@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-from stable_baselines3.dqn.policies import QNetwork
+from stable_baselines3.common.torch_layers import BaseFeaturesExtractor
 
 
 '''
@@ -11,7 +11,7 @@ from stable_baselines3.dqn.policies import QNetwork
 
 class MlpFeatureExtra(nn.Module):
     def __init__(self, feature_dim, hidden_dims: list, dropout_rate=0.1):
-        super(NodeFeatureExtra, self).__init__()
+        super(MlpFeatureExtra, self).__init__()
         
         hidden_dims = [feature_dim] + hidden_dims
         layers = []
@@ -26,47 +26,18 @@ class MlpFeatureExtra(nn.Module):
         return self.mlp(x)
 
 
-# 通过mlp去提取node特征
-class NodeFeatureExtra(nn.Module):
-    def __init__(self, node_feature_dim, hidden_dims: list, dropout_rate=0.1):
-        super(NodeFeatureExtra, self).__init__()
-        self.extractor = MlpFeatureExtra(node_feature_dim, hidden_dims, dropout_rate)
-
-    def forward(self,x):
-        return self.extractor(x)
-    
-
-# 通过Mlp去提取task特征
-class TaskFeatureExtra(nn.Module):
-    def __init__(self, node_feature_dim, hidden_dims: list, dropout_rate=0.1):
-        super(TaskFeatureExtra, self).__init__()
-        self.extractor = MlpFeatureExtra(node_feature_dim, hidden_dims, dropout_rate)
-
-    def forward(self,x):
-        return self.extractor(x)
-        
-    
-class MergeFeatureExtra(nn.Module):
-    def __init__(self, feature_dim, hidden_dims: list, dropout_rate=0.1):
-        super(MergeFeatureExtra, self).__init__()
-        self.extractor = MlpFeatureExtra(feature_dim, hidden_dims, dropout_rate)
-
-    def forward(self,x):
-        return self.extractor(x)
-
-
-class LayerDependentQNetwork(QNetwork):
-    def __init__(self, observation_space, action_space, features_extractor=None, features_dim=None):
-        super().__init__(observation_space, action_space, features_extractor=features_extractor, features_dim=features_dim)
+class LayerDependentExtractor(BaseFeaturesExtractor):
+    def __init__(self, observation_space, features_dim: int = 128, actions_dim: int = 5):
+        super().__init__(observation_space,  features_dim=features_dim)
 
         self.state_dim = observation_space.shape[0]
-        self.action_dim = action_space.n
+        self.action_dim = actions_dim
         self._set_node_and_task_feature_dim()
-        self._info()
-
-        self.node_feature_extractor = NodeFeatureExtra(self.node_feature_dim, [64, 128, 64])
-        self.task_feature_extractor = TaskFeatureExtra(self.node_feature_dim, [64, 128, 64])
-        self.merge_extractor = MergeFeatureExtra(128, [65, 32])
+        # self._info()
+        self.node_feature_extractor = MlpFeatureExtra(self.node_feature_dim, [128,64])
+        self.task_feature_extractor = MlpFeatureExtra(self.task_feature_dim, [128,64])
+        self.merge_feature_extractor = MlpFeatureExtra(128, [64, features_dim])
+        
     
     def _set_node_and_task_feature_dim(self):
         # state_dim = N(3L+3)+4N+L+1= (3L+7)N+L+1 = (3N+1)L+7N+1
@@ -83,9 +54,10 @@ class LayerDependentQNetwork(QNetwork):
 
     def forward(self, obs):
         self.node_input = obs[:,:self.node_feature_dim]
-        self.task_input = obs[:,self.node_feature_dim]
+        self.task_input = obs[:,self.node_feature_dim:]
         node_output = self.node_feature_extractor(self.node_input)
         task_output = self.task_feature_extractor(self.task_input)
         
         merge_input = torch.cat([node_output, task_output], dim=1)
-        return self.merge_extractor(merge_input)
+        return self.merge_feature_extractor(merge_input)
+    
