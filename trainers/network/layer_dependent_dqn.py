@@ -27,16 +27,21 @@ class MlpFeatureExtra(nn.Module):
 
 
 class LayerDependentExtractor(BaseFeaturesExtractor):
-    def __init__(self, observation_space, features_dim: int = 128, actions_dim: int = 5):
+    def __init__(self, observation_space
+                 , features_dim: int = 128
+                 , actions_dim: int = 5
+                 , nodes_net_arch = [128, 64]
+                 , tasks_net_arch = [128, 64]):
         super().__init__(observation_space,  features_dim=features_dim)
+        assert features_dim == nodes_net_arch[-1]+tasks_net_arch[-1], "dim error"
 
         self.state_dim = observation_space.shape[0]
         self.action_dim = actions_dim
         self._set_node_and_task_feature_dim()
         # self._info()
-        self.node_feature_extractor = MlpFeatureExtra(self.node_feature_dim, [128,64])
-        self.task_feature_extractor = MlpFeatureExtra(self.task_feature_dim, [128,64])
-        self.merge_feature_extractor = MlpFeatureExtra(128, [64, features_dim])
+        self.node_feature_extractor = MlpFeatureExtra(self.node_feature_dim, nodes_net_arch)
+        self.task_feature_extractor = MlpFeatureExtra(self.task_feature_dim, tasks_net_arch)
+        # self.merge_feature_extractor = MlpFeatureExtra(128, [64, features_dim])
         
     
     def _set_node_and_task_feature_dim(self):
@@ -58,6 +63,7 @@ class LayerDependentExtractor(BaseFeaturesExtractor):
         node_output = self.node_feature_extractor(self.node_input)
         task_output = self.task_feature_extractor(self.task_input)
         
-        merge_input = torch.cat([node_output, task_output], dim=1)
-        return self.merge_feature_extractor(merge_input)
+        # merge_input = torch.cat([node_output, task_output], dim=1)
+        # return self.merge_feature_extractor(merge_input)
+        return torch.cat([node_output, task_output], dim=1)
     

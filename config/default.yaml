@@ -193,8 +193,10 @@ trainer:
     net_arch: [256, 256]
     features_extractor_class: 'LayerDependentExtractor'
     features_extractor_kwargs: 
-      'features_dim': 512 
+      'features_dim': 128 
       'actions_dim': 6 # 5台机器+一台云服务器
+      'nodes_net_arch': [128, 64]
+      'tasks_net_arch': [128, 64]
 
 env:
   id: "LayerEdgeEnv-v0"
