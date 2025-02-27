@@ -10,7 +10,8 @@ from stable_baselines3.common.callbacks import EvalCallback, BaseCallback
 import numpy as np
 import torch
 from .trainer import Trainer,CfgType
-from .network.custom_net import CustomNetwork
+from .network.layer_dependent_ppo import CustomNetwork
+# from .network.custom_net import CustomNetwork
 from .network.custom_cnn import CustomCNN
 from sim.wrapper import MyWrapper
 from .network.fm_net import FMNetwork
@@ -47,10 +48,18 @@ class PPO(Trainer):
         # self.env = gym.make(**env_cfg)
 
         params = [
-            "policy","learning_rate", "n_steps", "batch_size", "n_epochs",
-            "gamma", "verbose", "tensorboard_log", "device"
+            "policy"
+            , "learning_rate"
+            , "n_steps"
+            , "batch_size"
+            , "n_epochs"
+            , "policy_kwargs"
+            , "gamma"
+            , "verbose"
+            , "tensorboard_log"
+            , "device"
         ]
-        train_cfg["policy"] = FMNetwork
+        train_cfg["policy"] = CustomNetwork
         self.model = self._init_model(model=ST_PPO, train_cfg=train_cfg, params=params)    
         
     def train(self):

@@ -1,3 +1,5 @@
+# copy from https://github.com/SpringtoString/DeepFM_torch and Make some adaptive modification
+
 # -*- coding: utf-8 -*-
 import pandas as pd
 import torch
@@ -36,7 +38,9 @@ class Deepfm(nn.Module):
         self.l2_reg_linear = l2_reg_linear
 
         # self.feature_index 建立feature到列名到输入数据X的相对位置的映射
-        self.feature_index = self.build_input_features(self.feat_sizes)
+        # self.feature_index = self.build_input_features(self.feat_sizes)
+        # 数据是按照sparse_column..., dense_column排列的
+        self.feature_index = self.build_input_features(self.sparse_feature_columns+self.dense_feature_columns)
 
         self.bias = nn.Parameter(torch.zeros((1,)))
         # self.weight
