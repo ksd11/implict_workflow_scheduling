@@ -29,8 +29,8 @@ class Data:
     hi_cpu = 10
 
     # 请求信息
-    lo_request_cpu = 1
-    hi_request_cpu = 10
+    lo_request_cpu = 5
+    hi_request_cpu = 100
     request_interval = 5 # 请求到达的间隔
 
     # layer信息
@@ -311,10 +311,14 @@ class Cloud(Machine):
     def isAccommodate(self, task: Task):
         return True
 
+global_data = Data(5, 500, 200, 100)
+
 class LayerEdgeEnv(gym.Env):
     def __init__(self, render_mode="human"):
         # N, L, C, Len
-        self.data = Data(5, 50, 20, 100)
+        # self.data = Data(5, 50, 20, 100)
+        # self.data = Data(5, 500, 200, 100)
+        self.data = global_data
         data = self.data
         self.N = data.N
         self.L = data.L

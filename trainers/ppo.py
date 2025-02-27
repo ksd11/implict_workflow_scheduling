@@ -15,6 +15,7 @@ from .network.layer_dependent_ppo import CustomNetwork
 from .network.custom_cnn import CustomCNN
 from sim.wrapper import MyWrapper
 from .network.fm_net import FMNetwork
+from stable_baselines3.common.vec_env import DummyVecEnv, SubprocVecEnv
 
 
 # class TensorboardCallback(BaseCallback):
@@ -43,7 +44,13 @@ from .network.fm_net import FMNetwork
 class PPO(Trainer):
     def __init__(self, agent_cfg: CfgType, env_cfg: CfgType, train_cfg: CfgType):
         super(PPO, self).__init__(agent_cfg, env_cfg, train_cfg)
-        self.env = Monitor(gym.make(**env_cfg))
+
+        def make_env():
+            env = LayerEdgeEnv()
+            env = Monitor(env)  # 添加Monitor包装器
+            return env
+        # self.env = Monitor(gym.make(**env_cfg))
+        self.env = SubprocVecEnv([make_env for _ in range(8)], start_method='fork')
         # self.env = MyWrapper()
         # self.env = gym.make(**env_cfg)
 
@@ -60,8 +67,8 @@ class PPO(Trainer):
             , "device"
         ]
         train_cfg["policy"] = CustomNetwork
-        self.model = self._init_model(model=ST_PPO, train_cfg=train_cfg, params=params)    
-        
+        self.model = self._init_model(model=ST_PPO, train_cfg=train_cfg, params=params)
+
     def train(self):
         self.pre_train()
     

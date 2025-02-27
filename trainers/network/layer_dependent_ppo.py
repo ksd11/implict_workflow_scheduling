@@ -39,9 +39,9 @@ state_dim = 836, N = 5, L = 50
 class PolicyNetwork(nn.Module):
     def __init__(self, feature_dim, policy_net, dropout_rate=0.1, device="cuda"):
         super(PolicyNetwork, self).__init__()
-        state_dim = 836
-        self.N = 5
-        self.L = 50
+        # state_dim = 836
+        self.N = policy_net["N"]
+        self.L = policy_net["L"]
         self.each_node_dim = 3*self.L+1+1+1
         self.node_feature_dim = self.each_node_dim * self.N 
         self.task_feature_dim = 4*self.N+self.L+1
@@ -54,11 +54,11 @@ class PolicyNetwork(nn.Module):
 
     def _build_deepfm(self, dnn_hidden, device):
         sparse_features = []
-        for i in range(self.N):
+        for i in range(self.L):
             sparse_features.append("C"+str(i))
         
         dense_features = []
-        for i in range(self.N, self.each_node_dim):
+        for i in range(self.L, self.each_node_dim):
             dense_features.append("I"+str(i))
 
 
