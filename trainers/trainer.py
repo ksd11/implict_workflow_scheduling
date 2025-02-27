@@ -25,10 +25,10 @@ class Trainer(ABC):
         print("Saving model to "+path)
         self.model.save(path)
 
-    def load(self, path: str):
+    def load(self, path: str, env = None):
         print("loading model from "+path)
         # 有些模型会返回结果，有些不会
-        res =  self.model.load(path)
+        res =  self.model.load(path, env=env)
         if res != None:
             self.model = res
         # self.model = self.model.__class__.load(path, env = self.env, print_system_info = True)

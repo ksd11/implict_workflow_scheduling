@@ -31,16 +31,18 @@ class LayerDependentExtractor(BaseFeaturesExtractor):
                  , features_dim: int = 128
                  , actions_dim: int = 5
                  , nodes_net_arch = [128, 64]
-                 , tasks_net_arch = [128, 64]):
+                 , tasks_net_arch = [128, 64]
+                 , device = 'cuda' if torch.cuda.is_available() else 'cpu'):
         super().__init__(observation_space,  features_dim=features_dim)
         assert features_dim == nodes_net_arch[-1]+tasks_net_arch[-1], "dim error"
+        self.device = device
 
         self.state_dim = observation_space.shape[0]
         self.action_dim = actions_dim
         self._set_node_and_task_feature_dim()
         # self._info()
-        self.node_feature_extractor = MlpFeatureExtra(self.node_feature_dim, nodes_net_arch)
-        self.task_feature_extractor = MlpFeatureExtra(self.task_feature_dim, tasks_net_arch)
+        self.node_feature_extractor = MlpFeatureExtra(self.node_feature_dim, nodes_net_arch).to(self.device)
+        self.task_feature_extractor = MlpFeatureExtra(self.task_feature_dim, tasks_net_arch).to(self.device)
         # self.merge_feature_extractor = MlpFeatureExtra(128, [64, features_dim])
         
     
@@ -58,6 +60,7 @@ class LayerDependentExtractor(BaseFeaturesExtractor):
         print(f"state_dim: {self.state_dim}, action_dim: {self.action_dim}, node_feature_dim: {self.node_feature_dim}, task_feature_dim: {self.task_feature_dim}" )
 
     def forward(self, obs):
+        obs = obs.to(self.device)
         self.node_input = obs[:,:self.node_feature_dim]
         self.task_input = obs[:,self.node_feature_dim:]
         node_output = self.node_feature_extractor(self.node_input)

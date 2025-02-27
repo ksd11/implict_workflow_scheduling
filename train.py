@@ -10,4 +10,4 @@ if __name__ == "__main__":
         args["cfg"]["env"]["render_mode"] = "human"
         print(play_a_game(args["cfg"]))
     else:
-        make_trainer(args["cfg"]).train()    
+        make_trainer(args["cfg"], load=True).train()    
