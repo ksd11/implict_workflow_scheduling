@@ -2,6 +2,7 @@ import gymnasium as gym
 from gymnasium import spaces
 import numpy as np
 import math
+from typing import Tuple
 
 '''
 Node: 有多少台边缘机器（N）, 每台机器的信息：（带宽b_n, 存储d_n, cpu f_n），以及一台cloud服务器
@@ -12,7 +13,7 @@ Container: 共有多少种Container，也即请求的种类数
 Traces: [trace1, trace2, ..]
 其中每条trace:
 每条trace长度固定, 假设为Len
-然后每个step的信息为：(timestamp, container_id)
+然后每个step的信息为：(task_id, timestamp, container_id)
 其中timestamp之间的间隔通过指数分布生成，假设两个请求之间间隔符合指数分布
 container_id采用均匀分布生成
 
@@ -51,12 +52,13 @@ class Data:
     def getContainerTypes(self, Len):
         container_types = np.random.randint(0, self.C, Len)
         return container_types
-    
+
     # 获取请求的信息
     def getTrace(self, Len):
         arrivals = self.getRequestArrivals(self.request_interval, Len)
         container_types = self.getContainerTypes(Len)
-        return np.column_stack((arrivals, container_types))
+        task_ids = np.array(range(Len)) # 给每一个task分配一个id
+        return np.column_stack((task_ids, arrivals, container_types))
         # print(np.column_stack((arrivals, container_types)))
 
     # 获取机器信息
@@ -129,16 +131,23 @@ class Data:
 # print("=================================")
 
 class Task:
-    def __init__(self, container: dict, layer_size: list):
+    def __init__(self, task_id :int, container: dict, layer_size: list, arrival_time: float):
+        self.task_id = task_id
         self.container = container
         self.cpu = container['cpu']
         self.layer = set(container['layer'])
         self.has_layer = []
+        self.arrival_time = arrival_time
         for i in range(len(layer_size)):
             if(i in self.layer):
                 self.has_layer.append(1)
             else:
                 self.has_layer.append(0)
+
+    def get_arrival_time(self):
+        return self.arrival_time
+    def get_task_id(self):
+        return self.task_id
 
 def ceil2(value):
     return math.ceil(value*100)/100
@@ -241,7 +250,7 @@ class Machine:
         self.cores[core_id].occupy(start, end)
 
                 
-    def addTask(self, task: Task, timestamp: float):
+    def addTask(self, task: Task, timestamp: float) -> Tuple[float, float]:
         # self.tasks.append(task)
         add_layers = self.getAddLayers(task)
         # 计算Layer下载完成时间
@@ -263,7 +272,7 @@ class Machine:
         self.place(core_id, est, est+execute_time)
         # print(f"{timestamp:.2f}: executing task at [{est:.2f}-{est+execute_time:.2f}) in edge {self.idx}")
         # self.task_finish_time = max(self.download_finish_time, self.task_finish_time) + execute_time
-        return est + execute_time
+        return est, est + execute_time
 
     def getAddLayers(self, task: Task):
         # 计算Layer下载完成时间
@@ -278,7 +287,7 @@ class Cloud(Machine):
     def __init__(self, cpu: float, storage: float, bandwidth: float, layer_size: list):
         super().__init__(cpu, storage, bandwidth, layer_size, 4, -1)
 
-    def addTask(self, task: Task, timestamp: float):
+    def addTask(self, task: Task, timestamp: float) -> Tuple[float, float]:
         add_layers = self.getAddLayers(task)
         # 计算Layer下载完成时间
         ready_time = timestamp
@@ -297,7 +306,7 @@ class Cloud(Machine):
         est = ready_time
         # print(f"{timestamp:.2f}: executing task at [{est}-{est+execute_time}) in cloud")
         # self.task_finish_time = max(self.download_finish_time, self.task_finish_time) + execute_time
-        return est + execute_time
+        return est, est + execute_time
     
     def isAccommodate(self, task: Task):
         return True
@@ -307,6 +316,8 @@ class LayerEdgeEnv(gym.Env):
         # N, L, C, Len
         self.data = Data(5, 50, 20, 100)
         data = self.data
+        self.N = data.N
+        self.L = data.L
         N,L = data.N, data.L
         obs_dim = N * (3*L+3) + 4 * N + L + 1
         act_dim = N+1
@@ -360,31 +371,57 @@ class LayerEdgeEnv(gym.Env):
         for machine in self.machines:
             machine.reset()
         self.cloud.reset()
+        self.clear_schedule_info()
         return self.__getState(), {}
     
     def __getTask(self) -> Task:
         if self.__idDone():
             return None
         task_info = self.data.trace[self.trace_idx]
-        arrival_time, container_id = task_info[0], int(task_info[1])
+        task_id, arrival_time, container_id = task_info[0], task_info[1], int(task_info[2])
         container = self.data.containers[container_id]
         self.timestamp = arrival_time
-        return Task(container, self.layers)
+        return Task(task_id=task_id, arrival_time=arrival_time, container=container, layer_size=self.layers )
     
     def __next(self):
         self.trace_idx += 1
 
     def step(self, action):
         reward = 0
+        task = self.__getTask()
         if action == self.data.N:
             # to cloud
-            reward = -self.cloud.addTask(self.__getTask(), self.timestamp)
+            start_time, finish_time = self.cloud.addTask(task, self.timestamp)
+            reward = -finish_time
         else:
             # to edge
-            reward = -self.machines[action].addTask(self.__getTask(), self.timestamp)
+            start_time, finish_time = self.machines[action].addTask(task, self.timestamp)
+            reward = -finish_time
+        
+        self.record_schedule_info(task_id=task.get_task_id()
+                , server_id=action, core_id=-1
+                , arrival_time=task.get_arrival_time()
+                , start_time=start_time, finish_time=finish_time)
+        
         # 到下一个task
         self.__next()
-        return self.__getState(), reward, self.__idDone(), False, {}
+        return self.__getState(), reward, self.__idDone(), False, {"schedule_info": self.schedule_info}
+    
+    def record_schedule_info(self, task_id, server_id, core_id
+                             , arrival_time, start_time, finish_time):
+        self.schedule_info[task_id] = {
+            "server_id": server_id,
+            "core_id": core_id,
+            "arrival_time": arrival_time,
+            "start_time": start_time,
+            "finish_time": finish_time
+        }
+
+    def clear_schedule_info(self):
+        self.schedule_info = {}
+
+    def get_schedule_info(self):
+        return self.schedule_info
     
     # 判断动作是否合法，不合法需要重新sample
     def valid_action(self, action: int) -> bool:

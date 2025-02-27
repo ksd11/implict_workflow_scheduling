@@ -186,7 +186,7 @@ trainer:
   target_update_interval: 1000
   verbose: 0 
   tensorboard_log: "./tmp/tensorboard/"
-  total_timesteps: 1e5
+  total_timesteps: 2e5
   progress_bar: True
   device: "cuda"
   policy_kwargs: 
