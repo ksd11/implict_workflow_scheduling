@@ -53,7 +53,7 @@ class FMAC(nn.Module):
         # Policy network
         hidden_units_pi_1 = 64
         self.policy_net = nn.Sequential(
-            nn.FM(features_dim),
+            FM(features_dim),
             nn.Linear(1, last_layer_dim_pi),
             nn.ReLU(),
         )

@@ -13,6 +13,7 @@ from .trainer import Trainer,CfgType
 from .network.custom_net import CustomNetwork
 from .network.custom_cnn import CustomCNN
 from sim.wrapper import MyWrapper
+from .network.fm_net import FMNetwork
 
 
 # class TensorboardCallback(BaseCallback):
@@ -49,6 +50,7 @@ class PPO(Trainer):
             "policy","learning_rate", "n_steps", "batch_size", "n_epochs",
             "gamma", "verbose", "tensorboard_log", "device"
         ]
+        train_cfg["policy"] = FMNetwork
         self.model = self._init_model(model=ST_PPO, train_cfg=train_cfg, params=params)    
         
     def train(self):
