@@ -37,7 +37,7 @@ state_dim = 836, N = 5, L = 50
 
 '''
 class PolicyNetwork(nn.Module):
-    def __init__(self, feature_dim, policy_net, dropout_rate=0.1, device="cuda"):
+    def __init__(self, feature_dim, policy_net, dropout_rate=0.1, device="cpu"):
         super(PolicyNetwork, self).__init__()
         # state_dim = 836
         self.N = policy_net["N"]

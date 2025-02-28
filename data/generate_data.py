@@ -140,4 +140,4 @@ C: 容器种类数
 Len: 100 请求长度
 '''
 
-global_data = Data(N=3, L=100, C=30, Len=1000)
+global_data = Data(N=5, L=100, C=30, Len=1000)
