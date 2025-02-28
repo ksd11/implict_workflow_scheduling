@@ -334,11 +334,11 @@ class LayerEdgeEnv(gym.Env):
         if action == self.data.N:
             # to cloud
             start_time, finish_time = self.cloud.addTask(task, self.timestamp)
-            reward = -finish_time
+            reward = -finish_time/1000
         else:
             # to edge
             start_time, finish_time = self.machines[action].addTask(task, self.timestamp)
-            reward = -finish_time
+            reward = -finish_time/1000
         
         self.record_schedule_info(task_id=task.get_task_id()
                 , server_id=action, core_id=-1
