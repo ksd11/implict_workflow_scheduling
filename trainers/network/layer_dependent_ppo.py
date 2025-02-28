@@ -45,7 +45,7 @@ class PolicyNetwork(nn.Module):
         self.each_node_dim = 3*self.L+1+1+1
         self.node_feature_dim = self.each_node_dim * self.N 
         self.task_feature_dim = 4*self.N+self.L+1
-        merge_feature_dim = 32 + self.N
+        merge_feature_dim = policy_net["task_layer"][-1] + self.N
 
         self.fm = self._build_deepfm(policy_net["node_layer"], device)
 

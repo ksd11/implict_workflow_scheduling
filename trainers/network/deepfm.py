@@ -138,8 +138,9 @@ class Deepfm(nn.Module):
         '''
             output
         '''
-        y_pred = torch.sigmoid(logit+self.bias)
-        return y_pred
+        return logit + self.bias
+        # y_pred = torch.sigmoid(logit+self.bias)
+        # return y_pred
 
     def fit(self, train_input, y_label, val_input, y_val, batch_size=5000, epochs=15, verbose=5):
         x = [train_input[feature] for feature in self.feature_index]

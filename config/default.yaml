@@ -211,12 +211,12 @@ env:
 #   policy_kwargs:
 #     net_arch:
 #       policy_net: 
-#         node_layer: [128] # 有n个输出
-#         task_layer: [128, 64, 32] # 32个输出
+#         node_layer: [256, 128] # 有n个输出. （这个其实是指定deepfm中的dnn结构）
+#         task_layer: [128, 64, 32]
 #         merge_layer: [32]
 #         N: 5   # 共有多少台服务器
 #         L: 500  # 共有多少个层
-#       value_net: [128, 256, 32]
+#       value_net: [128, 64, 32]
 #     # net_arch: [256, 256]
 #   gamma: 0.99
 #   verbose: 0 

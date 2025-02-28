@@ -37,7 +37,7 @@ def report(info:dict):
     makespan = max([info[k]['finish_time'] for k in info])
     print("Makespan is: ", makespan)
 
-def round(env, scheduler: schedulers.Scheduler):
+def one_experiment(env, scheduler: schedulers.Scheduler):
     state,_ = env.reset()
     reward_sum = 0
     done = False
@@ -59,7 +59,7 @@ if __name__ == "__main__":
     cfg = load(params.filename)
     env = sim.LayerEdgeEnv()
 
-    scheduler = schedulers.GreedyScheduler(env.N, env.L)
-    # scheduler = schedulers.TrainableScheduler(cfg)
+    # scheduler = schedulers.GreedyScheduler(env.N, env.L)
+    scheduler = schedulers.TrainableScheduler(cfg)
 
-    round(env, scheduler)
+    one_experiment(env, scheduler)
