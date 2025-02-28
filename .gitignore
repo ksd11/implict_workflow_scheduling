@@ -2,7 +2,7 @@ model/
 tmp/
 __pycache__/
 logs/
-data/
+# data/
 test/
 .vscode/
 todo.md

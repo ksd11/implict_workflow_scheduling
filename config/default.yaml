@@ -235,9 +235,11 @@ trainer:
   learning_rate: 1e-4
   n_steps: 512
   batch_size: 4096 # env_size * n_steps
-  n_epochs: 16
+  n_epochs: 128
   policy_kwargs:
-    net_arch: [256, 256]
+    net_arch: 
+      pi: [1024, 256, 64]
+      vf: [1024, 256, 64]
   gamma: 0.99
   verbose: 0 
   tensorboard_log: "./tmp/tensorboard/"

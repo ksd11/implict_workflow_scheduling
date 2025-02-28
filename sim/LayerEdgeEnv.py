@@ -3,7 +3,7 @@ from gymnasium import spaces
 import numpy as np
 import math
 from typing import Tuple
-from data.generate_data import Data
+from data.generate_data import Data,global_data
 
 class Task:
     def __init__(self, task_id :int, container: dict, layer_size: list, arrival_time: float):
@@ -72,41 +72,113 @@ class Core:
 
     def __iter__(self):
         return self.interval.__iter__()
+    
+from collections import OrderedDict
+class Storage:
+    def __init__(self, size):
+        self.capacity = size  # 缓存容量
+        self.used = 0        # 已使用空间
+        self.cache = OrderedDict()  # {layer_id: (layer_size, download_finish_time)}
+    
+    '''
+        往缓存里添加layer_id表示的缓存块，大小为layer_size
+        1. 若缓存存在,则啥事也没有
+        2. 若缓存不存在,则添加缓存。需要保证缓存总大小不超过size, 若超出，则先驱逐旧的缓存块，再添加新的缓存块。驱逐的算法为LRU
+    '''
+    def add(self, layer_id, layer_size, download_finish_time):
+        # 如果已存在，直接返回
+        if layer_id in self.cache:
+            return
+        
+        # 检查是否需要腾出空间
+        while self.used + layer_size > self.capacity and self.cache:
+            # 移除最久未使用的缓存
+            _, info = self.cache.popitem(last=False)
+            removed_size, _ = info
+            self.used -= removed_size
+            
+        # 如果单个layer太大，则不缓存
+        if layer_size > self.capacity:
+            return
+            
+        # 添加新缓存
+        self.cache[layer_id] = (layer_size, download_finish_time)
+        self.used += layer_size
+    
+    '''
+        判断缓存里是否还有layer_id表示的缓存块
+    '''
+    def contain(self, layer_id):
+        return layer_id in self.cache
+    
+    '''
+        获取层的下载完成时间（用户保证层存在）
+    '''
+    def get_download_finish_time(self, layer_id):
+        return self.cache[layer_id][1]
+    
+    '''
+        标记layer_id对应的缓存块命中一次
+    '''
+    def hit(self, layer_id):
+        if layer_id in self.cache:
+            # 将命中的项移到末尾（最新使用）
+            size = self.cache.pop(layer_id)
+            self.cache[layer_id] = size
+
+    def has_layer(self, L):
+        res = []
+        for i in range(L):
+            if self.contain(i):
+                res.append(1)
+            else:
+                res.append(0)
+        return res
+    
+    def get_all_layers(self):
+        return set(self.cache.keys())
+    
+    def clear(self):
+        self.used = 0
+        self.cache = OrderedDict()
+    
 
 class Machine:
     def __init__(self, cpu: float, storage: float, bandwidth: float, layer_size: list, core_number:int, idx: int):
         self.cpu = cpu
-        self.storage = storage
+        self.storage = Storage(storage)
         self.bandwidth = bandwidth
         self.L = len(layer_size)
-        self.layer_size = layer_size
         self.core_number = core_number
         self.idx = idx
         self.reset()
 
     def reset(self):
-        self.layers = {} # 记录对应layers的下载完成时间
         self.download_finish_time = 0
         # self.tasks = []
         # self.task_finish_time = 0
         self.total_download_size = 0
-        self.has_layer = [0] * self.L
         self.cores = [Core(i) for i in range(self.core_number)]
+        self.storage.clear()
+
+    @property
+    def has_layer(self):
+        return self.storage.has_layer(self.L)
 
     def getRemainingDownloadTime(self, timestamp: float):
         res = []
         for i in range(self.L):
             # 如果没有下载过或者已经下载完成
-            if self.has_layer[i] == 0 or self.layers[i] <= timestamp:
+            if not self.storage.contain(i) or self.storage.get_download_finish_time(i) <= timestamp:
                 res.append(timestamp)
             else:
-                res.append(self.layers[i])
+                res.append(self.storage.get_download_finish_time(i))
         return res
     
     # 判断是否还能容纳此任务
     def isAccommodate(self, task: Task):
-        if self.total_download_size + self.getAddLayersSize(task) > self.storage:
-            return False
+        # if self.total_download_size + self.getAddLayersSize(task) > self.storage:
+        #     return False
         # TODO. container number的限制如何做？
         return True
     
@@ -123,23 +195,14 @@ class Machine:
     def place(self, core_id, start, end):
         # print(f"edge[{self.idx}-{core_id}] occupy: {start}-{end}")
         self.cores[core_id].occupy(start, end)
-
-                
+   
     def addTask(self, task: Task, timestamp: float) -> Tuple[float, float]:
         # self.tasks.append(task)
         add_layers = self.getAddLayers(task)
-        # 计算Layer下载完成时间
-        ready_time = timestamp
-        for layer in add_layers:
-            self.layers[layer] = self.download_finish_time + self.layer_size[layer]/self.bandwidth
-            # 记录信息
-            self.download_finish_time = self.layers[layer]
-            self.has_layer[layer] = 1
-            self.total_download_size += self.layer_size[layer]
-        if len(add_layers) > 0:
-            ready_time = max(ready_time, self.download_finish_time)
+        self.addNewLayers(add_layers)
 
-        ready_time = ceil2(ready_time)
+        # 计算Layer下载完成时间
+        ready_time =ceil2(max(timestamp, self.download_finish_time))
         
         # 计算Task完成时间
         execute_time = ceil2(task.cpu / self.cpu)
@@ -149,44 +212,43 @@ class Machine:
         # self.task_finish_time = max(self.download_finish_time, self.task_finish_time) + execute_time
         return est, est + execute_time
 
+    # 添加新的layers，并更新下载完成时间
+    def addNewLayers(self, add_layers):
+        # 计算Layer下载完成时间
+        for layer_id in add_layers:
+            self.download_finish_time += self.layer_size[layer_id]/self.bandwidth
+            self.storage.add(layer_id, self.layer_size[layer_id], self.download_finish_time)
+            # 记录信息
+            self.total_download_size += self.layer_size[layer_id]
+
+
     def getAddLayers(self, task: Task):
         # 计算Layer下载完成时间
         layers = set(task.layer)
-        add_layers = self.layers.keys() - layers
+        add_layers = self.storage.get_all_layers() - layers
         return add_layers
     
     def getAddLayersSize(self, task: Task):
-        return sum([self.layer_size[layer] for layer in self.getAddLayers(task)])
+        return sum([self.storage.used])
 
 class Cloud(Machine):
     def __init__(self, cpu: float, storage: float, bandwidth: float, layer_size: list):
         super().__init__(cpu, storage, bandwidth, layer_size, 4, -1)
 
-    def addTask(self, task: Task, timestamp: float) -> Tuple[float, float]:
-        add_layers = self.getAddLayers(task)
-        # 计算Layer下载完成时间
-        ready_time = timestamp
-        for layer in add_layers:
-            self.layers[layer] = self.download_finish_time + self.layer_size[layer]/self.bandwidth
-            # 记录信息
-            self.download_finish_time = self.layers[layer]
-            self.has_layer[layer] = 1
-            self.total_download_size += self.layer_size[layer]
-        if len(add_layers) > 0:
-            ready_time = max(ready_time, self.download_finish_time)
-        ready_time = ceil2(ready_time)
+    # def addTask(self, task: Task, timestamp: float) -> Tuple[float, float]:
+    #     add_layers = self.getAddLayers(task)
+    #     self.addNewLayers(add_layers)
 
-        # 计算Task完成时间
-        execute_time = ceil2(task.cpu / self.cpu)
-        est = ready_time
-        # print(f"{timestamp:.2f}: executing task at [{est}-{est+execute_time}) in cloud")
-        # self.task_finish_time = max(self.download_finish_time, self.task_finish_time) + execute_time
-        return est, est + execute_time
+    #     # 计算Layer下载完成时间
+    #     ready_time =ceil2(max(timestamp, self.download_finish_time))
+
+    #     # 计算Task完成时间
+    #     execute_time = ceil2(task.cpu / self.cpu)
+    #     est = ready_time
+    #     return est, est + execute_time
     
-    def isAccommodate(self, task: Task):
-        return True
-
-global_data = Data(5, 500, 200, 100)
+    # def isAccommodate(self, task: Task):
+    #     return True
 
 class LayerEdgeEnv(gym.Env):
     def __init__(self, render_mode="human"):
