@@ -3,6 +3,7 @@ from gymnasium import spaces
 import numpy as np
 import math
 from typing import Tuple
+from .zipf_request import generate_zipf_requests
 
 '''
 Node: 有多少台边缘机器（N）, 每台机器的信息：（带宽b_n, 存储d_n, cpu f_n），以及一台cloud服务器
@@ -23,8 +24,8 @@ class Data:
     # 机器的信息
     lo_bandwidth = 0.6 # 60Mbps~90Mbps
     hi_bandwidth = 0.9
-    lo_storage = 10  # 小存储
-    hi_storage = 30
+    lo_storage = 5  # 小存储
+    hi_storage = 10
     lo_cpu = 0.8 # 0.8GHz ~ 1.2GHz
     hi_cpu = 1.2
 
@@ -50,6 +51,7 @@ class Data:
     
     # 获取请求的container类型
     def getContainerTypes(self, Len):
+        # container_types = generate_zipf_requests(self.N, Len, 2)
         container_types = np.random.randint(0, self.C, Len)
         return container_types
 
@@ -138,4 +140,4 @@ C: 容器种类数
 Len: 100 请求长度
 '''
 
-global_data = Data(N=5, L=20, C=30, Len=100)
+global_data = Data(N=3, L=100, C=30, Len=1000)

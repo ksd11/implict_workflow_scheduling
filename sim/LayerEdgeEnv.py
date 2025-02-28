@@ -151,6 +151,7 @@ class Machine:
         self.L = len(layer_size)
         self.core_number = core_number
         self.idx = idx
+        self.layer_size = layer_size
         self.reset()
 
     def reset(self):
@@ -225,7 +226,7 @@ class Machine:
     def getAddLayers(self, task: Task):
         # 计算Layer下载完成时间
         layers = set(task.layer)
-        add_layers = self.storage.get_all_layers() - layers
+        add_layers =  layers - self.storage.get_all_layers()
         return add_layers
     
     def getAddLayersSize(self, task: Task):

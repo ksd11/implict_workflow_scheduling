@@ -59,7 +59,8 @@ if __name__ == "__main__":
     cfg = load(params.filename)
     env = sim.LayerEdgeEnv()
 
-    # scheduler = schedulers.GreedyScheduler(env.N, env.L)
-    scheduler = schedulers.TrainableScheduler(cfg)
+    scheduler = schedulers.GreedyScheduler(env.N, env.L)
+    # scheduler = schedulers.TrainableScheduler(cfg)
+    # scheduler = schedulers.RandomScheduler(env.N, env.L)
 
     one_experiment(env, scheduler)

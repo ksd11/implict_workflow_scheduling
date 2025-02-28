@@ -1,7 +1,8 @@
 
+from .scheduler import Scheduler
 
 # 只调度到edge，并且选择下载时间最短的那台机器
-class GreedyScheduler:
+class GreedyScheduler(Scheduler):
     def __init__(self, N, L):
         self.N = N
         self.L = L

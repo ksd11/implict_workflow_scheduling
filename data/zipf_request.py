@@ -1,7 +1,7 @@
 import numpy as np
 from scipy.stats import zipf
 
-def generate_requests(n_types, n_samples, alpha=1.5):
+def generate_zipf_requests(n_types, n_samples, alpha=1.5):
     """
     n_types: 请求类型数量
     n_samples: 需要生成的请求数量
@@ -23,10 +23,10 @@ def generate_requests(n_types, n_samples, alpha=1.5):
     return requests
 
 # 使用示例
-n_types = 20    # 20种请求类型
-n_samples = 100 # 生成100个请求
-alpha = 2.0     # Zipf分布参数
+# n_types = 20    # 20种请求类型
+# n_samples = 100 # 生成100个请求
+# alpha = 2.0     # Zipf分布参数
 
-requests = generate_requests(n_types, n_samples, alpha)
+# requests = generate_requests(n_types, n_samples, alpha)
 
-print(requests)
+# print(requests)
