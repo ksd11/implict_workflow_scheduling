@@ -1,11 +1,6 @@
 from stable_baselines3 import PPO as ST_PPO
-from stable_baselines3.common.vec_env.dummy_vec_env import DummyVecEnv
-from stable_baselines3.common.vec_env import VecNormalize
-from stable_baselines3.common.evaluation import evaluate_policy
-from stable_baselines3.common.monitor import Monitor
 import gymnasium as gym
 # from leftenv import GoLeftEnv
-from sim.LayerEdgeEnv import LayerEdgeEnv
 from stable_baselines3.common.callbacks import EvalCallback, BaseCallback
 import numpy as np
 import torch
@@ -15,7 +10,6 @@ from .network.layer_dependent_ppo import CustomNetwork
 from .network.custom_cnn import CustomCNN
 from sim.wrapper import MyWrapper
 from .network.fm_net import FMNetwork
-from stable_baselines3.common.vec_env import DummyVecEnv, SubprocVecEnv
 
 class TensorboardCallback(BaseCallback):
     def __init__(self, verbose=0):
@@ -47,14 +41,7 @@ class PPO(Trainer):
     def __init__(self, agent_cfg: CfgType, env_cfg: CfgType, train_cfg: CfgType):
         super(PPO, self).__init__(agent_cfg, env_cfg, train_cfg)
 
-        def make_env():
-            env = LayerEdgeEnv()
-            env = Monitor(env)  # 添加Monitor包装器
-            return env
-        # self.env = Monitor(gym.make(**env_cfg))
-        self.env = SubprocVecEnv([make_env for _ in range(8)], start_method='fork')
-        # self.env = MyWrapper()
-        # self.env = gym.make(**env_cfg)
+        self.env = self.make_env(env_cfg)
 
         params = [
             "policy"
@@ -68,7 +55,7 @@ class PPO(Trainer):
             , "tensorboard_log"
             , "device"
         ]
-        train_cfg["policy"] = CustomNetwork
+        # train_cfg["policy"] = CustomNetwork
         self.model = self._init_model(model=ST_PPO, train_cfg=train_cfg, params=params)
 
     def train(self):

@@ -43,7 +43,7 @@ class TensorboardCallback(BaseCallback):
 class DQN(Trainer):
     def __init__(self, agent_cfg: CfgType, env_cfg: CfgType, train_cfg: CfgType):
         super(DQN, self).__init__(agent_cfg, env_cfg, train_cfg)
-        self.env = Monitor(gym.make(**self.env_cfg))
+        self.env = self.make_env(env_cfg)
         params = [
             # https://stable-baselines3.readthedocs.io/en/master/modules/dqn.html
             "policy" # MlpPolicy, CnnPolicy, 自定义
@@ -65,7 +65,6 @@ class DQN(Trainer):
             assert extractor in glob, f"'{extractor}' is not a valid extractor."
             train_cfg["policy_kwargs"]["features_extractor_class"] = glob[extractor]
         
-        # train_cfg["policy"] = LayerDependentQNetwork
         self.model = self._init_model(model=ST_DQN, train_cfg=train_cfg, params=params)    
 
     def _set(self, source, dest, key):

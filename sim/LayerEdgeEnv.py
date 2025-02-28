@@ -5,18 +5,6 @@ import math
 from typing import Tuple
 from data.generate_data import Data
 
-# np.random.seed(0)
-# data = Data(5, 50, 20, 100)
-# print(data.machines)
-# print(data.cloud)
-# print(data.layers)
-# print(data.containers)
-# print(data.trace)
-# print("another: ")
-# print(data.getAnotherTrace())
-
-# print("=================================")
-
 class Task:
     def __init__(self, task_id :int, container: dict, layer_size: list, arrival_time: float):
         self.task_id = task_id

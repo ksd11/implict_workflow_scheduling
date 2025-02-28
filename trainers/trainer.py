@@ -1,6 +1,9 @@
 from abc import ABC, abstractmethod
 from typing import Any
 from stable_baselines3.common.evaluation import evaluate_policy
+from sim.LayerEdgeEnv import LayerEdgeEnv
+from stable_baselines3.common.monitor import Monitor
+from stable_baselines3.common.vec_env import DummyVecEnv, SubprocVecEnv
 
 CfgType = dict[str, Any]
 
@@ -12,6 +15,17 @@ class Trainer(ABC):
 
     def train():
         pass
+
+    def make_env(self, env_cfg):
+        def get_env():
+            env = LayerEdgeEnv()
+            env = Monitor(env)  # 添加Monitor包装器
+            return env
+        # self.env = Monitor(gym.make(**env_cfg))
+        # return get_env()
+        return SubprocVecEnv([get_env for _ in range(8)], start_method='fork')
+        # self.env = MyWrapper()
+        # self.env = gym.make(**env_cfg)
 
     def pre_train(self):
         self.eval("Before train...")
