@@ -175,54 +175,54 @@ agent:
 
 
 ############## example 3  DQN做layer-awary调度 #############
-# trainer:
-#   trainer_cls: 'DQN'
-#   policy: "MlpPolicy"
-#   learning_rate: 0.01
-#   batch_size: 512
-#   gamma: 0.9
-#   buffer_size: 50000
-#   learning_starts: 0
-#   target_update_interval: 1000
-#   verbose: 0 
-#   tensorboard_log: "./tmp/tensorboard/"
-#   total_timesteps: 2e5
-#   progress_bar: True
-#   device: "cuda"
-#   policy_kwargs: 
-#     net_arch: [256, 256]
-#     features_extractor_class: 'LayerDependentExtractor'
-#     features_extractor_kwargs: 
-#       'features_dim': 256 
-#       'actions_dim': 6 # 5台机器+一台云服务器
-#       'nodes_net_arch': [512, 256, 128]
-#       'tasks_net_arch': [128, 128, 128]
-# env:
-#   id: "LayerEdgeEnv-v0"
-
-########## example 4 layer depentdent ppo ############
 trainer:
-  trainer_cls: 'PPO'
+  trainer_cls: 'DQN'
   policy: "MlpPolicy"
-  learning_rate: 1e-3
-  n_steps: 4096
-  batch_size: 1024
-  n_epochs: 16
-  policy_kwargs:
-    net_arch:
-      policy_net: 
-        node_layer: [128] # 有n个输出
-        task_layer: [128, 64, 32] # 32个输出
-        merge_layer: [32]
-        N: 5   # 共有多少台服务器
-        L: 500  # 共有多少个层
-      value_net: [128, 256, 32]
-    # net_arch: [256, 256]
-  gamma: 0.99
+  learning_rate: 0.01
+  batch_size: 512
+  gamma: 0.9
+  buffer_size: 50000
+  learning_starts: 0
+  target_update_interval: 1000
   verbose: 0 
   tensorboard_log: "./tmp/tensorboard/"
   total_timesteps: 2e5
   progress_bar: True
   device: "cuda"
+  policy_kwargs: 
+    net_arch: [256, 256]
+    features_extractor_class: 'LayerDependentExtractor'
+    features_extractor_kwargs: 
+      'features_dim': 256 
+      'actions_dim': 6 # 5台机器+一台云服务器
+      'nodes_net_arch': [512, 256, 128]
+      'tasks_net_arch': [128, 128, 128]
 env:
   id: "LayerEdgeEnv-v0"
+
+########## example 4 layer depentdent ppo ############
+# trainer:
+#   trainer_cls: 'PPO'
+#   policy: "MlpPolicy"
+#   learning_rate: 1e-3
+#   n_steps: 1024
+#   batch_size: 8192 # env_size * n_steps
+#   n_epochs: 16
+#   policy_kwargs:
+#     net_arch:
+#       policy_net: 
+#         node_layer: [128] # 有n个输出
+#         task_layer: [128, 64, 32] # 32个输出
+#         merge_layer: [32]
+#         N: 5   # 共有多少台服务器
+#         L: 500  # 共有多少个层
+#       value_net: [128, 256, 32]
+#     # net_arch: [256, 256]
+#   gamma: 0.99
+#   verbose: 0 
+#   tensorboard_log: "./tmp/tensorboard/"
+#   total_timesteps: 2e5
+#   progress_bar: True
+#   device: "cuda"
+# env:
+#   id: "LayerEdgeEnv-v0"
