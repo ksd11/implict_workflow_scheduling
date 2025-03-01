@@ -186,7 +186,7 @@ agent:
 #   target_update_interval: 1000
 #   verbose: 0 
 #   tensorboard_log: "./tmp/tensorboard/"
-#   total_timesteps: 2e6
+#   total_timesteps: 5e5
 #   progress_bar: True
 #   device: "cuda"
 #   policy_kwargs: 
@@ -221,7 +221,7 @@ trainer:
   gamma: 0.99
   verbose: 0 
   tensorboard_log: "./tmp/tensorboard/"
-  total_timesteps: 2e6
+  total_timesteps: 2e5
   progress_bar: True
   device: "cpu"
 env:

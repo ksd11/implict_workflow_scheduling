@@ -1,7 +1,6 @@
 from stable_baselines3 import PPO as ST_PPO
 import gymnasium as gym
 # from leftenv import GoLeftEnv
-from stable_baselines3.common.callbacks import EvalCallback, BaseCallback
 import numpy as np
 import torch
 from .trainer import Trainer,CfgType
@@ -11,24 +10,6 @@ from .network.custom_cnn import CustomCNN
 from sim.wrapper import MyWrapper
 from .network.fm_net import FMNetwork
 
-class TensorboardCallback(BaseCallback):
-    def __init__(self, verbose=0):
-        super(TensorboardCallback, self).__init__(verbose)
-        self.episode_reward = 0
-
-    def _on_step(self) -> bool:
-         # 获取当前步骤的奖励
-        reward = self.locals['rewards'][0]  # 对于非向量化环境是单个值
-        self.episode_reward += reward
-        
-        # 检查是否episode结束
-        done = self.locals['dones'][0]  # 获取结束信号
-        if done:
-            # 记录本episode的总奖励
-            self.logger.record('episode/total_reward', self.episode_reward)
-            # 重置累积奖励
-            self.episode_reward = 0
-        return True
 
 # env_name = "CartPole-v0"
 # env = gym.make(env_name)
@@ -60,15 +41,9 @@ class PPO(Trainer):
 
     def train(self):
         self.pre_train()
-    
-        # eval_callback = EvalCallback(self.env, best_model_save_path='./model/',
-                                    # log_path='./logs/', eval_freq=500,
-                                    # deterministic=True, render=False)
-        tensorboard_callback = TensorboardCallback()
 
         # 开始训练
-        # self.model.learn(total_timesteps=self.train_cfg["total_timesteps"], progress_bar=["progress_bar"], callback=[eval_callback, tensorboard_callback])
-        self.model.learn(total_timesteps=self.train_cfg["total_timesteps"], progress_bar=["progress_bar"], callback=[tensorboard_callback])
+        self.model.learn(total_timesteps=self.train_cfg["total_timesteps"], progress_bar=["progress_bar"], callback=self.callback())
         
         self.post_train()
 
