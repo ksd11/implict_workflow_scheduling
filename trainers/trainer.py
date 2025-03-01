@@ -4,6 +4,7 @@ from stable_baselines3.common.evaluation import evaluate_policy
 from sim.LayerEdgeEnv import LayerEdgeEnv
 from stable_baselines3.common.monitor import Monitor
 from stable_baselines3.common.vec_env import DummyVecEnv, SubprocVecEnv
+from .network.layer_dependent_dqn import LayerDependentExtractor
 
 CfgType = dict[str, Any]
 
@@ -61,16 +62,16 @@ class Trainer(ABC):
         print("Saving model to "+path)
         self.model.save(path)
 
-    def load(self, path: str, env = None):
+    def load(self, path: str, env = None, device="auto"):
         print("loading model from "+path)
         # 有些模型会返回结果，有些不会
-        res =  self.model.load(path, env=env)
+        res =  self.model.load(path, env=env, device=device)
         if res != None:
             self.model = res
         # self.model = self.model.__class__.load(path, env = self.env, print_system_info = True)
         return self
     
-    def eval(self, msg, n_eval_episodes=5, deterministic=False, render=False):
+    def eval(self, msg, n_eval_episodes=5, deterministic=True, render=False):
         print(msg)
         mean_reward, std_reward = evaluate_policy(self.model, self.env, n_eval_episodes=n_eval_episodes, deterministic=deterministic,render=render)
         print("mean_reward:",mean_reward,"std_reward:",std_reward)
@@ -114,6 +115,14 @@ class Trainer(ABC):
         model_kargs = {
             "env": self.env
         }
+
+        # 'feature_extractor_class'需要特殊处理
+        if "policy_kwargs" in train_cfg and "features_extractor_class" in train_cfg["policy_kwargs"]:
+            extractor = train_cfg["policy_kwargs"]["features_extractor_class"]
+            glob = globals()
+            assert extractor in glob, f"'{extractor}' is not a valid extractor."
+            train_cfg["policy_kwargs"]["features_extractor_class"] = glob[extractor]
+
         for param in params:
             self._set(train_cfg, model_kargs, param)
         return model(**model_kargs)

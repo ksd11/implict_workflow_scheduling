@@ -7,7 +7,8 @@ class TrainableScheduler:
     def __init__(self, cfg):
         path = model_path(cfg['trainer']['trainer_cls'], cfg['env']['id'])
         trainer: Trainer = make_trainer(cfg)
-        self.model = trainer.load(path).get_model()
+        # path = trainer.get_best_model_path() + "/best_model.zip"
+        self.model = trainer.load(path, device=cfg['trainer']['device']).get_model()
 
     def schedule(self, obs: list)  -> tuple[int, dict]:
         return self.model.predict(obs, deterministic=True)

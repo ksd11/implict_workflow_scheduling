@@ -32,7 +32,8 @@ class LayerDependentExtractor(BaseFeaturesExtractor):
                  , actions_dim: int = 5
                  , nodes_net_arch = [128, 64]
                  , tasks_net_arch = [128, 64]
-                 , device = 'cuda' if torch.cuda.is_available() else 'cpu'):
+                 , device = "cpu"):
+                #  , device = 'cuda' if torch.cuda.is_available() else 'cpu'):
         super().__init__(observation_space,  features_dim=features_dim)
         assert features_dim == nodes_net_arch[-1]+tasks_net_arch[-1], "dim error"
         self.device = device

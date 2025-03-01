@@ -36,7 +36,7 @@ class PPO(Trainer):
             , "tensorboard_log"
             , "device"
         ]
-        train_cfg["policy"] = CustomNetwork
+        # train_cfg["policy"] = CustomNetwork
         self.model = self._init_model(model=ST_PPO, train_cfg=train_cfg, params=params)
 
     def train(self):

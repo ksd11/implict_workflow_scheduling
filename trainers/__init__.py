@@ -15,7 +15,7 @@ def make_trainer(cfg, load=False):
     )
     if load:
         path = model_path(cfg['trainer']['trainer_cls'], cfg['env']['id'])
-        trainer.load(path, env=trainer.env)
+        trainer.load(path, env=trainer.env, device=trainer_cls["device"])
     return trainer
 
 def model_path(model, env):
