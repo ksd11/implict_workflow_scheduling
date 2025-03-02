@@ -3,7 +3,7 @@ import numpy as np
 from scipy.stats import zipf, expon
 import networkx as nx
 import os
-from util import visualize_dag
+from .util import visualize_dag
 
 
 '''
@@ -74,7 +74,7 @@ class DataGenerator:
         self.task_containers = {}  # 任务-容器映射
         self.traces = []        # 请求序列
         
-    def generate(self, job_csv, num_edge_nodes=10, num_layers=100, num_containers=200, 
+    def generate(self, job_csv, num_edge_nodes=5, num_layers=1000, num_containers=500, 
                  trace_len=1000, mean_interarrival=10, seed=42, zipf_a = 1.5):
         """生成所有需要的数据"""
         np.random.seed(seed)
@@ -369,11 +369,12 @@ class DataGenerator:
     def getSystemInfo(self):
         """返回系统信息"""
         return {
-            'num_nodes': len(self.nodes),
-            'num_jobs': len(self.jobs),
-            'num_layers': len(self.layers),
-            'num_containers': len(self.containers),
-            'trace_length': len(self.traces)
+            'nodes': self.nodes,
+            'jobs': self.jobs,
+            'containers': self.containers,
+            'layers': self.layers,
+            'tasks_info': self.tasks_info,
+            'traces': self.traces
         }
     
     # 在DataGenerator类中添加可视化方法
@@ -393,10 +394,10 @@ def main():
     # 生成数据
     generator.generate(
         job_csv='selected_jobs.csv',
-        num_edge_nodes=10,
-        num_layers=100,
-        num_containers=200,
-        trace_len=1000
+        # num_edge_nodes=10,
+        # num_layers=100,
+        # num_containers=200,
+        # trace_len=1000
     )
     
     # 保存数据

@@ -3,33 +3,40 @@ from gymnasium import spaces
 import numpy as np
 import math
 from typing import Tuple
-from data.old_generate_data import Data,global_data
+from data.data_generate import DataGenerator
 from .cluster import *
+from pprint import pprint
 
-class LayerEdgeEnv(gym.Env):
+
+class LayerEdgeDynamicEnv(gym.Env):
     def __init__(self, render_mode="human"):
         # N, L, C, Len
         # self.data = Data(5, 50, 20, 100)
         # self.data = Data(5, 500, 200, 100)
-        self.data = global_data
-        data = self.data
-        self.N = data.N
-        self.L = data.L
-        N,L = data.N, data.L
-        obs_dim = N * (3*L+3) + 4 * N + L + 1
-        act_dim = N+1
+        generator = DataGenerator()
+        generator.load("data/workload_data")
+        pprint(generator.getSystemInfo())
 
-        self.observation_space = spaces.Box(
-            low=0, high=math.inf, shape=(obs_dim,), dtype=np.float64)
-        self.action_space = spaces.Discrete(act_dim)
-        self.state = None
 
-        self.machines: list[Machine] = []
-        for idx, machine in enumerate(data.machines):
-            self.machines.append(Machine(machine['cpu'], machine['storage'], machine['bandwidth'], data.layers, 2, idx))
-        # self.machines.append(Machine(data.cloud['cpu'], data.cloud['storage'], data.cloud['bandwidth'], data.layers))
-        self.layers = data.layers # layer_size的信息
-        self.cloud = Cloud(data.cloud['cpu'], data.cloud['storage'], data.cloud['bandwidth'], data.layers)
+
+
+        # self.N = data.N
+        # self.L = data.L
+        # N,L = data.N, data.L
+        # obs_dim = N * (3*L+3) + 4 * N + L + 1
+        # act_dim = N+1
+
+        # self.observation_space = spaces.Box(
+        #     low=0, high=math.inf, shape=(obs_dim,), dtype=np.float64)
+        # self.action_space = spaces.Discrete(act_dim)
+        # self.state = None
+
+        # self.machines: list[Machine] = []
+        # for idx, machine in enumerate(data.machines):
+        #     self.machines.append(Machine(machine['cpu'], machine['storage'], machine['bandwidth'], data.layers, 2, idx))
+        # # self.machines.append(Machine(data.cloud['cpu'], data.cloud['storage'], data.cloud['bandwidth'], data.layers))
+        # self.layers = data.layers # layer_size的信息
+        # self.cloud = Cloud(data.cloud['cpu'], data.cloud['storage'], data.cloud['bandwidth'], data.layers)
 
     def __getState(self):
         # 获取当前被调度的任务
@@ -132,20 +139,8 @@ class LayerEdgeEnv(gym.Env):
 
     def __idDone(self) -> bool:
         return self.trace_idx == self.data.trace.shape[0]
+    
 
-if __name__ == '__main__':
-    from stable_baselines3.common.env_checker import check_env
+LayerEdgeDynamicEnv()
 
-    env = LayerEdgeEnv()
-    # It will check your custom environment and output additional warnings if needed
-    print(check_env(env))
-
-    env.reset(4)
-    print(env.data.trace[:10])
-
-    env.reset(8)
-    print(env.data.trace[:10])
-
-    env.reset(4)
-    print(env.data.trace[:10])
 
