@@ -1,4 +1,5 @@
 from .LayerEdgeEnv import LayerEdgeEnv
+from .LayerEdgeDynamicEnv import LayerEdgeDynamicEnv
 from .wrapper import MyWrapper
 import gymnasium as gym
 
@@ -14,5 +15,5 @@ gym.register(
 
 gym.register(
     id='LayerEdgeDynamicEnv-v0',
-    entry_point='sim.LayerEdgeDynamicEnv:LayerEdgeDynamicEnv''
+    entry_point='sim.LayerEdgeDynamicEnv:LayerEdgeDynamicEnv'
 )

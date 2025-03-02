@@ -27,7 +27,7 @@ class LayerEdgeDynamicEnv(gym.Env):
         self.state = None
 
         self.machines: list[Machine] = []
-        for idx, node_info in enumerate(self.nodes):
+        for idx, node_info in enumerate(self.data.nodes):
             self.machines.append(Machine(idx, node_info, self.data))
         
         self.task_queue = TaskQueue()
@@ -40,10 +40,14 @@ class LayerEdgeDynamicEnv(gym.Env):
         # 将所有任务的起始任务添加到任务队列
         for timestamp, job_name in traces:
             G :nx.DiGraph = self.data.jobs[job_name]
+
+            # is_dag = nx.is_directed_acyclic_graph(G)
+            # has_cycle = not is_dag
+            # print("是否有环:", has_cycle)
             task_name = f"{job_name}_source"
             task_info = self.data.tasks_info[(job_name, task_name)]
 
-            task = Task(job_name=job_name, task_name=task_name, task_info=task_info, arrival_time=timestamp, data=self.data)
+            task = Task(job_name=job_name, task_name=task_name, arrival_time=timestamp, data=self.data)
 
             self.task_queue.add_task(task)
 
@@ -51,9 +55,9 @@ class LayerEdgeDynamicEnv(gym.Env):
     def __getState(self):
         # 获取当前被调度的任务
         task:Task = self.task_queue.peek()
-        timestamp = task.get_arrival_time()
         if task is None:
             return [0] * self.observation_space.shape[0]
+        timestamp = task.get_arrival_time()
 
         # for machine
         state = []
@@ -78,10 +82,15 @@ class LayerEdgeDynamicEnv(gym.Env):
         return np.array(state)
 
     def reset(self, seed=None, options=None, return_info=None):
-        self.data.traces = self.data.getNewTrace(seed) # 初始化新的trace
+        # self.data.traces = self.data.getNewTrace(seed) # 初始化新的trace
         for machine in self.machines:
             machine.reset()
         self.clear_schedule_info()
+
+        # add task
+        self.task_queue = TaskQueue()
+        self.__add_task_from_trace()
+        
         return self.__getState(), {}
     
     # 移除任务，并将其后置任务添加到任务队列
@@ -109,7 +118,7 @@ class LayerEdgeDynamicEnv(gym.Env):
             new_task = Task(
                 job_name=task.job_name,
                 task_name=chosen_succ,
-                timestamp=finish_time, # 上一个任务结束之后才能开始
+                arrival_time=finish_time, # 上一个任务结束之后才能开始
                 data=self.data
             )
             self.task_queue.add_task(new_task)
@@ -119,6 +128,8 @@ class LayerEdgeDynamicEnv(gym.Env):
     def step(self, action):
         reward = 0
         task = self.task_queue.peek()
+        if task == None:
+            assert False, "Env is done!!"
 
         start_time, finish_time = self.machines[action].addTask(task)
         task.set_finish_time(finish_time)
@@ -162,7 +173,7 @@ class LayerEdgeDynamicEnv(gym.Env):
 
     # 任务队列里面没任务代表完成了
     def __idDone(self) -> bool:
-        return self.task_queue.peek() is None
+        return self.task_queue.is_empty()
     
 
 

@@ -18,6 +18,7 @@ class Task:
         self.data = data
         self.has_layer = [] # 任务含有Layer的位图
         self.container_id = task_info['container_id']
+        self.layer = data.containers[self.container_id]
         for i in range(len(data.layers)):
             if(i in data.containers[self.container_id]):
                 self.has_layer.append(1)
@@ -186,7 +187,7 @@ class Machine:
         self.storage = Storage(node_info['storage'])
         self.pull_dealy = node_info['pull_delay']
         self.L = len(data.layers)
-        self.core_number = node_info['core_number']
+        self.core_number = int(node_info['core_number'])
         self.idx = idx
         self.layer_size = data.layers
         self.reset()
@@ -255,7 +256,7 @@ class Machine:
     def addNewLayers(self, add_layers):
         # 计算Layer下载完成时间
         for layer_id in add_layers:
-            self.download_finish_time += self.layer_size[layer_id]/self.bandwidth
+            self.download_finish_time += self.layer_size[layer_id] * self.pull_dealy
             self.storage.add(layer_id, self.layer_size[layer_id], self.download_finish_time)
             # 记录信息
             self.total_download_size += self.layer_size[layer_id]
@@ -268,5 +269,5 @@ class Machine:
         return add_layers
     
     def getAddLayersSize(self, task: Task):
-        add_layers = self.getAddLayers()
+        add_layers = self.getAddLayers(task)
         return sum(add_layers)

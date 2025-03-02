@@ -75,7 +75,7 @@ class DataGenerator:
         self.traces = []        # 请求序列
         
     def generate(self, job_csv, num_edge_nodes=5, num_layers=1000, num_containers=500, 
-                 trace_len=1000, mean_interarrival=10, seed=42, zipf_a = 1.5):
+                 trace_len=100, mean_interarrival=10, seed=42, zipf_a = 1.5):
         """生成所有需要的数据"""
         np.random.seed(seed)
         
@@ -217,6 +217,8 @@ class DataGenerator:
             selected_layers = np.random.choice(layer_ids, size=num_layers, replace=False)
             
             self.containers[i] = list(selected_layers)
+        
+        self.containers.append([]) # -1为空，为source和sink指向的容器
 
     
     def _generate_tasks_info(self, zipf_a = 1.2):
@@ -227,8 +229,8 @@ class DataGenerator:
         # 收集所有任务
         for job_name, G in self.jobs.items():
             for task in G.nodes():
+                all_tasks.append((job_name, task))
                 if not task.endswith('_source') and not task.endswith('_sink'):  # 排除虚拟节点
-                    all_tasks.append((job_name, task))
                     # 生成随机的CPU占用
                     task_info[(job_name, task)] = {
                         'cpu': np.random.uniform(0.5*config._func_comp, 1.5*config._func_comp)
@@ -254,10 +256,16 @@ class DataGenerator:
         # 创建任务到容器的映射，同时包含CPU信息
         self.tasks_info = {}
         for (job_name, task), container_id in zip(all_tasks, container_assignments):
-            self.tasks_info[(job_name, task)] = {
-                'container_id': container_id,
-                'cpu': task_info[(job_name, task)]['cpu']
-            }
+            if not task.endswith('_source') and not task.endswith('_sink'):
+                self.tasks_info[(job_name, task)] = {
+                    'container_id': container_id,
+                    'cpu': task_info[(job_name, task)]['cpu']
+                }
+            else:
+                self.tasks_info[(job_name, task)] = {
+                    'container_id': -1,
+                    'cpu': 0
+                }
     
     def save(self, path):
         """保存所有生成的数据"""
@@ -334,6 +342,8 @@ class DataGenerator:
         containers_df = pd.read_csv(f'{path}/containers.csv')
         self.containers = []
         for _, row in containers_df.iterrows():
+            if pd.isna(row['layers']):
+                continue
             self.containers.append(
                 list(map(int, row['layers'].split(','))))
         
@@ -352,7 +362,7 @@ class DataGenerator:
         self.traces = list(zip(traces_df['timestamp'], traces_df['job_id']))
         return self
     
-    def getNewTrace(self, seed, trace_len = 1000, mean_interarrival = 10):
+    def getNewTrace(self, seed, trace_len = 100, mean_interarrival = 10):
         """生成新的请求序列"""
         np.random.seed(seed)
         
@@ -390,19 +400,19 @@ class DataGenerator:
 def main():
     # 创建数据生成器
     generator = DataGenerator()
-    generator.load('data/workload_data')
+    # generator.load('data/workload_data')
     
     # 生成数据
-    # generator.generate(
-    #     job_csv='data/selected_jobs.csv',
-    #     # num_edge_nodes=10,
-    #     # num_layers=100,
-    #     # num_containers=200,
-    #     # trace_len=1000
-    # )
+    generator.generate(
+        job_csv='data/selected_jobs.csv',
+        num_edge_nodes=5,
+        num_layers=1000,
+        num_containers=500,
+        trace_len=10
+    )
     
-    # # 保存数据
-    # generator.save('data/workload_data')
+    # 保存数据
+    generator.save('data/workload_data')
     
     # # 打印系统信息
     # print("\n=== 系统信息 ===")

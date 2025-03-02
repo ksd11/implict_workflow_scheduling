@@ -257,7 +257,7 @@ trainer:
   progress_bar: True
   device: "cpu"
 env:
-  id: "LayerEdgeEnv-v0"
+  id: "LayerEdgeDynamicEnv-v0"
 
 
 ############ normal dqn ###############

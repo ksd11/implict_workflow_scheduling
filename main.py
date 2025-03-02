@@ -57,10 +57,11 @@ def one_experiment(env, scheduler: schedulers.Scheduler):
 if __name__ == "__main__":
     params = make_parser().parse_args()
     cfg = load(params.filename)
-    env = sim.LayerEdgeEnv()
+    # env = sim.LayerEdgeEnv()
+    env = sim.LayerEdgeDynamicEnv()
 
-    scheduler = schedulers.GreedyScheduler(env.N, env.L)
+    # scheduler = schedulers.GreedyScheduler(env.N, env.L)
     # scheduler = schedulers.TrainableScheduler(cfg)
-    # scheduler = schedulers.RandomScheduler(env.N, env.L)
+    scheduler = schedulers.RandomScheduler(env.N, env.L)
 
     one_experiment(env, scheduler)
