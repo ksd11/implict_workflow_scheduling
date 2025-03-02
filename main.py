@@ -32,13 +32,13 @@ def make_parser():
     return parser
 
 def report(info:dict):
-    for k in info:
-        print(info[k])
+    # for k in info:
+        # print(info[k])
     makespan = max([info[k]['finish_time'] for k in info])
     print("Makespan is: ", makespan)
 
-def one_experiment(env, scheduler: schedulers.Scheduler):
-    state,_ = env.reset()
+def one_experiment(env, scheduler: schedulers.Scheduler, seed = None):
+    state,_ = env.reset(seed)
     reward_sum = 0
     done = False
 
@@ -64,4 +64,5 @@ if __name__ == "__main__":
     # scheduler = schedulers.TrainableScheduler(cfg)
     scheduler = schedulers.RandomScheduler(env.N, env.L)
 
-    one_experiment(env, scheduler)
+    for i in range(10):
+        one_experiment(env, scheduler, seed=i)

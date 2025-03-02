@@ -362,7 +362,7 @@ class DataGenerator:
         self.traces = list(zip(traces_df['timestamp'], traces_df['job_id']))
         return self
     
-    def getNewTrace(self, seed, trace_len = 1000, mean_interarrival = 10):
+    def getNewTrace(self, seed, trace_len = 100, mean_interarrival = 10):
         """生成新的请求序列"""
         np.random.seed(seed)
         
@@ -406,9 +406,9 @@ def main():
     generator.generate(
         job_csv='data/selected_jobs.csv',
         num_edge_nodes=5,
-        num_layers=1000,
-        num_containers=500,
-        trace_len=1000
+        num_layers=200,
+        num_containers=100,
+        trace_len=100
     )
     
     # 保存数据

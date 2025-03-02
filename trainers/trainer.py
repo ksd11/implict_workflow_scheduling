@@ -5,6 +5,7 @@ from sim.LayerEdgeEnv import LayerEdgeEnv
 from stable_baselines3.common.monitor import Monitor
 from stable_baselines3.common.vec_env import DummyVecEnv, SubprocVecEnv
 from .network.layer_dependent_dqn import LayerDependentExtractor
+import gymnasium as gym
 
 CfgType = dict[str, Any]
 
@@ -41,7 +42,8 @@ class Trainer(ABC):
     # 根据env_cfg创建env环境
     def make_env(self, env_cfg):
         def get_env():
-            env = LayerEdgeEnv()
+            # env = LayerEdgeEnv()
+            env = gym.make(**env_cfg)
             env = Monitor(env)  # 添加Monitor包装器
             return env
         # self.env = Monitor(gym.make(**env_cfg))
