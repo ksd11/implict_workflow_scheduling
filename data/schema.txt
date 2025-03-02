@@ -22,12 +22,14 @@ layers : List[int] = [
 
 nodes : List[Dict] = [
     {
+        'pull_delay': xx,
         'storage': xx,
         'cpu': xx,
         'core_number': xxx
     },
     ...
     {
+        'pull_delay': xx,
         'storage': xx,
         'cpu': xx,
         'core_number': xxx

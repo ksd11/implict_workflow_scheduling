@@ -105,6 +105,7 @@ class DataGenerator:
         # 生成边缘节点
         for i in range(num_edge_nodes):
             self.nodes[i] = {
+                'pull_delay': np.random.uniform(0.5*config._gamma, 1.5*config._gamma),
                 'storage': np.random.uniform(config.lo_storage, config.hi_storage),  # 随机存储容量
                 'cpu': np.random.uniform(0.5*config._c, 1.5*config._c),     # 随机计算能力
                 'core_number': np.random.choice(config.core_number)
@@ -112,6 +113,7 @@ class DataGenerator:
         
         # 生成云节点
         self.nodes[num_edge_nodes] = {
+            'pull_delay': 0.5*config._gamma,
             'storage': config.hi_storage * 2,   # 较大存储容量
             'cpu':  2,                    # 较大计算能力
             'core_number': config.core_number[-1]
@@ -350,7 +352,7 @@ class DataGenerator:
         self.traces = list(zip(traces_df['timestamp'], traces_df['job_id']))
         return self
     
-    def getNewTrace(self, seed, trace_len, mean_interarrival = 10):
+    def getNewTrace(self, seed, trace_len = 1000, mean_interarrival = 10):
         """生成新的请求序列"""
         np.random.seed(seed)
         
@@ -399,7 +401,7 @@ def main():
     #     # trace_len=1000
     # )
     
-    # 保存数据
+    # # 保存数据
     # generator.save('data/workload_data')
     
     # # 打印系统信息

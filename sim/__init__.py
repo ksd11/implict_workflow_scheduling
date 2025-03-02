@@ -11,3 +11,8 @@ gym.register(
     id='MyWrapper-v0',
     entry_point='sim.wrapper:MyWrapper'
 )
+
+gym.register(
+    id='LayerEdgeDynamicEnv-v0',
+    entry_point='sim.LayerEdgeDynamicEnv:LayerEdgeDynamicEnv''
+)

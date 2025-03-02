@@ -8,16 +8,18 @@ import heapq
 from typing import Any, Optional
 
 class Task:
-    def __init__(self, job_id: str, task_id :str, task_info: dict, arrival_time: float, data: DataGenerator):
-        self.job_id = job_id
-        self.task_id = task_id
+    def __init__(self, job_name: str, task_name :str, arrival_time: float, data: DataGenerator):
+        task_info = data.tasks_info[(job_name,task_name)]
+        self.job_name = job_name
+        self.task_name = task_name
         self.task_info = task_info
+        self.cpu = task_info['cpu']
         self.arrival_time = arrival_time
         self.data = data
-        self.has_layer = []
-        self.arrival_time = arrival_time
-        for i in range(len(layer_size)):
-            if(i in self.layer):
+        self.has_layer = [] # 任务含有Layer的位图
+        self.container_id = task_info['container_id']
+        for i in range(len(data.layers)):
+            if(i in data.containers[self.container_id]):
                 self.has_layer.append(1)
             else:
                 self.has_layer.append(0)
@@ -25,7 +27,11 @@ class Task:
     def get_arrival_time(self):
         return self.arrival_time
     def get_task_id(self):
-        return self.task_id
+        return (self.job_name, self.task_name)
+    def set_finish_time(self, finish_time):
+        self.finish_time = finish_time
+    def get_finish_time(self):
+        return self.finish_time
     
     # 用于优先队列比较
     def __lt__(self, other):
@@ -175,14 +181,14 @@ class Storage:
     
 
 class Machine:
-    def __init__(self, cpu: float, storage: float, bandwidth: float, layer_size: list, core_number:int, idx: int):
-        self.cpu = cpu
-        self.storage = Storage(storage)
-        self.bandwidth = bandwidth
-        self.L = len(layer_size)
-        self.core_number = core_number
+    def __init__(self, idx: int, node_info: dict, data: dict):
+        self.cpu = node_info['cpu']
+        self.storage = Storage(node_info['storage'])
+        self.pull_dealy = node_info['pull_delay']
+        self.L = len(data.layers)
+        self.core_number = node_info['core_number']
         self.idx = idx
-        self.layer_size = layer_size
+        self.layer_size = data.layers
         self.reset()
 
     def reset(self):
@@ -228,7 +234,8 @@ class Machine:
         # print(f"edge[{self.idx}-{core_id}] occupy: {start}-{end}")
         self.cores[core_id].occupy(start, end)
    
-    def addTask(self, task: Task, timestamp: float) -> Tuple[float, float]:
+    def addTask(self, task: Task) -> Tuple[float, float]:
+        timestamp = task.get_arrival_time()
         # self.tasks.append(task)
         add_layers = self.getAddLayers(task)
         self.addNewLayers(add_layers)
@@ -261,23 +268,5 @@ class Machine:
         return add_layers
     
     def getAddLayersSize(self, task: Task):
-        return sum([self.storage.used])
-
-class Cloud(Machine):
-    def __init__(self, cpu: float, storage: float, bandwidth: float, layer_size: list):
-        super().__init__(cpu, storage, bandwidth, layer_size, 4, -1)
-
-    # def addTask(self, task: Task, timestamp: float) -> Tuple[float, float]:
-    #     add_layers = self.getAddLayers(task)
-    #     self.addNewLayers(add_layers)
-
-    #     # 计算Layer下载完成时间
-    #     ready_time =ceil2(max(timestamp, self.download_finish_time))
-
-    #     # 计算Task完成时间
-    #     execute_time = ceil2(task.cpu / self.cpu)
-    #     est = ready_time
-    #     return est, est + execute_time
-    
-    # def isAccommodate(self, task: Task):
-    #     return True
+        add_layers = self.getAddLayers()
+        return sum(add_layers)
