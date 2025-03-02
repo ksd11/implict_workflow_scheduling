@@ -175,30 +175,30 @@ agent:
 
 
 ############## example 3  DQN做layer-awary调度 #############
-trainer:
-  trainer_cls: 'DQN'
-  policy: "MlpPolicy"
-  learning_rate: 1e-3
-  batch_size: 512
-  gamma: 0.9
-  buffer_size: 50000
-  learning_starts: 0
-  target_update_interval: 1000
-  verbose: 0 
-  tensorboard_log: "./tmp/tensorboard/"
-  total_timesteps: 2e6
-  progress_bar: True
-  device: "cuda"
-  policy_kwargs: 
-    net_arch: [256, 256]
-    features_extractor_class: 'LayerDependentExtractor'
-    features_extractor_kwargs: 
-      'features_dim': 256 
-      'actions_dim': 6 # 5台机器+一台云服务器
-      'nodes_net_arch': [512, 256, 128]
-      'tasks_net_arch': [128, 128, 128]
-env:
-  id: "LayerEdgeEnv-v0"
+# trainer:
+#   trainer_cls: 'DQN'
+#   policy: "MlpPolicy"
+#   learning_rate: 1e-3
+#   batch_size: 512
+#   gamma: 0.9
+#   buffer_size: 50000
+#   learning_starts: 0
+#   target_update_interval: 1000
+#   verbose: 0 
+#   tensorboard_log: "./tmp/tensorboard/"
+#   total_timesteps: 2e6
+#   progress_bar: True
+#   device: "cuda"
+#   policy_kwargs: 
+#     net_arch: [256, 256]
+#     features_extractor_class: 'LayerDependentExtractor'
+#     features_extractor_kwargs: 
+#       'features_dim': 256 
+#       'actions_dim': 6 # 5台机器+一台云服务器
+#       'nodes_net_arch': [512, 256, 128]
+#       'tasks_net_arch': [128, 128, 128]
+# env:
+#   id: "LayerEdgeEnv-v0"
   # id: "LayerEdgeDynamicEnv-v0"
 
 ########## example 4 layer depentdent ppo ############
@@ -230,36 +230,43 @@ env:
 
 
 ############## normal ppo ###########3
-# trainer:
-#   trainer_cls: 'PPO'
-#   policy: "MlpPolicy"
-#   learning_rate: 1e-3
-#   n_steps: 512
-#   batch_size: 4096 # env_size * n_steps
-#   n_epochs: 32
-#   policy_kwargs: 
-#     net_arch: 
-#       pi: [256, 128]
-#       vf: [256, 128]
-#     features_extractor_class: 'LayerDependentExtractor'
-#     features_extractor_kwargs: 
-#       'features_dim': 256 
-#       'actions_dim': 6 # 5台机器+一台云服务器
-#       'nodes_net_arch': [512, 256, 128]
-#       'tasks_net_arch': [128, 128, 128]
-#   # policy_kwargs:
-#   #   net_arch: [1024, 512, 256, 128]
-#       # pi: [1024, 256, 64]
-#       # vf: [1024, 256, 64]
-#   gamma: 0.99
-#   verbose: 0 
-#   tensorboard_log: "./tmp/tensorboard/"
-#   total_timesteps: 1e6
-#   progress_bar: True
-#   device: "cpu"
-# env:
-#   # id: "LayerEdgeDynamicEnv-v0"
-#   id: "LayerEdgeEnv-v0"
+trainer:
+  trainer_cls: 'PPO'
+  policy: "MlpPolicy"
+  learning_rate: 1e-4
+  n_steps: 1024
+  batch_size: 8192 # env_size * n_steps
+  n_epochs: 16
+  policy_kwargs: 
+    net_arch: 
+      pi: [256, 128]
+      vf: [256, 128]
+    features_extractor_class: 'LayerDependentExtractor'
+    features_extractor_kwargs: 
+      'features_dim': 256 
+      'actions_dim': 6 # 5台机器+一台云服务器
+      'nodes_net_arch': [512, 256, 128]
+      'tasks_net_arch': [128, 128, 128]
+  # policy_kwargs:
+  #   net_arch: [1024, 512, 256, 128]
+      # pi: [1024, 256, 64]
+      # vf: [1024, 256, 64]
+  gamma: 0.99
+  verbose: 0 
+  tensorboard_log: "./tmp/tensorboard/"
+  total_timesteps: 2e6
+  progress_bar: True
+  device: "cpu"
+  # 3. PPO特有参数
+  clip_range: 0.2        # 限制策略更新步长
+  gae_lambda: 0.95       # GAE参数
+  ent_coef: 0.01        # 提高探索度
+  vf_coef: 0.5          # 值函数系数
+  max_grad_norm: 0.5    # 梯度裁剪
+  target_kl: 0.01       # KL散度限制
+env:
+  # id: "LayerEdgeDynamicEnv-v0"
+  id: "LayerEdgeEnv-v0"
 
 
 ############ normal dqn ###############

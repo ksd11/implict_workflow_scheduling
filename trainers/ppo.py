@@ -35,6 +35,12 @@ class PPO(Trainer):
             , "verbose"
             , "tensorboard_log"
             , "device"
+            , "clip_range"
+            , "gae_lambda"
+            , "ent_coef"
+            , "vf_coef"
+            , "max_grad_norm"
+            , "target_kl"
         ]
         # train_cfg["policy"] = CustomNetwork
         self.model = self._init_model(model=ST_PPO, train_cfg=train_cfg, params=params)
