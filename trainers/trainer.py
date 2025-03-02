@@ -84,11 +84,11 @@ class Trainer(ABC):
     # 训练过程中回调函数，记录感兴趣的信息
     def callback(self):
         # 创建 early stopping callback
-        stop_train_callback = StopTrainingOnNoModelImprovement(
-            max_no_improvement_evals=5,  # 5次评估没有提升则停止
-            min_evals=5,               # 最少训练20次
-            verbose=1
-        )
+        # stop_train_callback = StopTrainingOnNoModelImprovement(
+        #     max_no_improvement_evals=5,  # 5次评估没有提升则停止
+        #     min_evals=5,               # 最少训练20次
+        #     verbose=1
+        # )
 
         # early stopping callback
         eval_callback = EvalCallback(self.env,
@@ -98,7 +98,7 @@ class Trainer(ABC):
                 deterministic=True, 
                 render=False,
                 n_eval_episodes=5, # 每次评估运行5个episodes
-                callback_after_eval=stop_train_callback,
+                # callback_after_eval=stop_train_callback,
                 verbose=1 )
         tensorboard_callback = TensorboardCallback()
 

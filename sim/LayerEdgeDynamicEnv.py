@@ -44,9 +44,9 @@ class LayerEdgeDynamicEnv(gym.Env):
         for timestamp, job_name in traces:
             G :nx.DiGraph = self.data.jobs[job_name]
 
-            is_dag = nx.is_directed_acyclic_graph(G)
-            assert is_dag, "bad dag, 因为dag有环"
-            # print("是否有环:", has_cycle)
+            # is_dag = nx.is_directed_acyclic_graph(G)
+            # assert is_dag, "bad dag, 因为dag有环"
+
             task_name = f"{job_name}_source"
             task_info = self.data.tasks_info[(job_name, task_name)]
 

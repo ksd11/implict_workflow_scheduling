@@ -115,8 +115,8 @@ class Data:
         # return machines, layers, containers, trace
     
     def getAnotherTrace(self):
-        if not hasattr(self, 'trace'):
-            self.trace = self.getTrace(self.Len)
+        # if not hasattr(self, 'trace'):
+        self.trace = self.getTrace(self.Len)
         return self.trace
         # return self.trace
 
