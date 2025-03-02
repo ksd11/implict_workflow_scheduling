@@ -1,7 +1,7 @@
 import heapq
 from dataclasses import dataclass
 from typing import Any, Optional
-
+from .cluster2 import Task
 @dataclass
 class Task:
     task_id: str

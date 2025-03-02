@@ -67,10 +67,10 @@ config = Config()
 class DataGenerator:
     def __init__(self):
         """初始化数据生成器"""
-        self.nodes = {}         # 服务器信息
+        self.nodes = []         # 服务器信息
         self.jobs = {}          # 作业信息
-        self.layers = {}        # 层信息
-        self.containers = {}    # 容器信息
+        self.layers = []        # 层信息
+        self.containers = []    # 容器信息
         self.task_containers = {}  # 任务-容器映射
         self.traces = []        # 请求序列
         
@@ -101,17 +101,18 @@ class DataGenerator:
     
     def _generate_nodes(self, num_edge_nodes):
         """生成边缘节点和云节点信息"""
+        self.nodes = [0] * (num_edge_nodes+1)
         # 生成边缘节点
         for i in range(num_edge_nodes):
-            self.nodes[f'edge_{i}'] = {
+            self.nodes[i] = {
                 'storage': np.random.uniform(config.lo_storage, config.hi_storage),  # 随机存储容量
                 'cpu': np.random.uniform(0.5*config._c, 1.5*config._c),     # 随机计算能力
                 'core_number': np.random.choice(config.core_number)
             }
         
         # 生成云节点
-        self.nodes['cloud'] = {
-            'stroage': config.hi_storage * 2,   # 较大存储容量
+        self.nodes[num_edge_nodes] = {
+            'storage': config.hi_storage * 2,   # 较大存储容量
             'cpu':  2,                    # 较大计算能力
             'core_number': config.core_number[-1]
         }
@@ -198,23 +199,23 @@ class DataGenerator:
 
     def _generate_layers(self, num_layers):
         """生成层信息"""
+        self.layers = [0] * num_layers
         for i in range(num_layers):
-            self.layers[f'layer_{i}'] = {
-                'size': np.random.uniform(config.lo_layer_size, config.hi_layer_size)  # MB
-            }
+            self.layers[i] = np.random.uniform(config.lo_layer_size, config.hi_layer_size)  # MB
+            
     
     def _generate_containers(self, num_containers):
         """生成容器信息"""
-        layer_ids = list(self.layers.keys())
+        layer_ids = list(range(len(self.layers)))
+        self.containers = [0] * num_containers
         
         for i in range(num_containers):
             # 随机选择5-20个层
             num_layers = np.random.randint(config.lo_func_layer_number, config.hi_func_layer_number+1)
             selected_layers = np.random.choice(layer_ids, size=num_layers, replace=False)
             
-            self.containers[f'container_{i}'] = {
-                'layers': list(selected_layers)
-            }
+            self.containers[i] = list(selected_layers)
+
     
     def _generate_tasks_info(self, zipf_a = 1.2):
         """为任务分配容器并生成CPU占用"""
@@ -231,7 +232,7 @@ class DataGenerator:
                         'cpu': np.random.uniform(0.5*config._func_comp, 1.5*config._func_comp)
                     }
         
-        container_ids = list(self.containers.keys())
+        container_ids = list(range(len(self.containers)))
         n = len(container_ids)
     
         # 生成 Zipf 分布的权重
@@ -261,7 +262,7 @@ class DataGenerator:
         os.makedirs(path, exist_ok=True)
         
         # 保存节点信息
-        pd.DataFrame([{'node_id': k, **v} for k, v in self.nodes.items()]).to_csv(
+        pd.DataFrame([{'node_id': k, **v} for k, v in enumerate(self.nodes)]).to_csv(
             f'{path}/nodes.csv', index=False)
         
         # 保存作业信息
@@ -278,15 +279,15 @@ class DataGenerator:
         pd.DataFrame(job_data).to_csv(f'{path}/jobs.csv', index=False)
         
         # 保存层信息
-        pd.DataFrame([{'layer_id': k, **v} for k, v in self.layers.items()]).to_csv(
+        pd.DataFrame([{'layer_id': i, 'size': size} for i, size in enumerate(self.layers)]).to_csv(
             f'{path}/layers.csv', index=False)
         
         # 保存容器信息
         container_data = []
-        for container_id, info in self.containers.items():
+        for container_id, layers in enumerate(self.containers):
             container_data.append({
                 'container_id': container_id,
-                'layers': ','.join(info['layers'])
+                'layers': ','.join(map(str, layers))
             })
         pd.DataFrame(container_data).to_csv(f'{path}/containers.csv', index=False)
         
@@ -309,8 +310,8 @@ class DataGenerator:
         """从目录加载数据"""
         # 加载节点信息
         nodes_df = pd.read_csv(f'{path}/nodes.csv')
-        self.nodes = {row['node_id']: {k: v for k, v in row.items() if k != 'node_id'}
-                     for _, row in nodes_df.iterrows()}
+        self.nodes = []
+        self.nodes = [{k: v for k, v in row.items() if k != 'node_id'} for _, row in nodes_df.iterrows()]
         
         # 加载作业信息
         jobs_df = pd.read_csv(f'{path}/jobs.csv')
@@ -325,16 +326,14 @@ class DataGenerator:
         
         # 3. 加载层信息
         layers_df = pd.read_csv(f'{path}/layers.csv')
-        self.layers = {row['layer_id']: {k: v for k, v in row.items() if k != 'layer_id'}
-                    for _, row in layers_df.iterrows()}
+        self.layers = [row['size'] for _, row in layers_df.iterrows()]
         
         # 4. 加载容器信息
         containers_df = pd.read_csv(f'{path}/containers.csv')
-        self.containers = {}
+        self.containers = []
         for _, row in containers_df.iterrows():
-            self.containers[row['container_id']] = {
-                'layers': row['layers'].split(',')  # 将字符串转回列表
-            }
+            self.containers.append(
+                list(map(int, row['layers'].split(','))))
         
         # 5. 加载任务-容器映射
         tasks_info_df = pd.read_csv(f'{path}/tasks_info.csv')
@@ -389,19 +388,19 @@ class DataGenerator:
 def main():
     # 创建数据生成器
     generator = DataGenerator()
-    # generator.load('workload_data')
+    generator.load('data/workload_data')
     
     # 生成数据
-    generator.generate(
-        job_csv='selected_jobs.csv',
-        # num_edge_nodes=10,
-        # num_layers=100,
-        # num_containers=200,
-        # trace_len=1000
-    )
+    # generator.generate(
+    #     job_csv='data/selected_jobs.csv',
+    #     # num_edge_nodes=10,
+    #     # num_layers=100,
+    #     # num_containers=200,
+    #     # trace_len=1000
+    # )
     
     # 保存数据
-    generator.save('workload_data')
+    # generator.save('data/workload_data')
     
     # # 打印系统信息
     # print("\n=== 系统信息 ===")

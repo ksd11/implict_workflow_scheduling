@@ -1,0 +1,50 @@
+containers: List[List] = [
+    [0, 1, 3, ...],
+    [2, 4, 10, ...]
+]
+
+--------------------------------------
+
+jobs : Dict[str, nx.DiGraph] = {
+    'job_1': G,
+    ...
+}
+
+边的信息: ['data_size', '[probability]']
+
+----------------------------------------
+
+layers : List[int] = [
+    size1, size2, ...
+]
+
+--------------------------------------
+
+nodes : List[Dict] = [
+    {
+        'storage': xx,
+        'cpu': xx,
+        'core_number': xxx
+    },
+    ...
+    {
+        'storage': xx,
+        'cpu': xx,
+        'core_number': xxx
+    }
+]
+
+--------------------------------------
+
+tasks_info : Dict = {
+    ('job_name',('task_name')): {
+        'container_id': xx,
+        'cpu': xx
+    }
+}
+
+
+----------------------------
+
+trace : List = [(timestamp,job_id), ...]
+
