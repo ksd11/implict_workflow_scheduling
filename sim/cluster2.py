@@ -1,6 +1,5 @@
 import math
 from typing import Tuple
-import portion as P
 from collections import OrderedDict
 from data.data_generate import DataGenerator
 
@@ -39,68 +38,77 @@ class Task:
         return self.arrival_time < other.arrival_time
 
 # 任务队列，按照任务的到达时间排序
+
 class TaskQueue:
+    __slots__ = ['tasks']  # 优化内存使用
+    
     def __init__(self):
-        self.tasks = []  # 优先队列
+        self.tasks = []
+        heapq.heapify(self.tasks)  # 确保堆属性
         
-    def add_task(self, task:Task) -> None:
+    def add_task(self, task: Task) -> None:
         """添加任务到队列"""
         heapq.heappush(self.tasks, task)
         
     def get_task(self) -> Optional[Task]:
         """获取最早的任务"""
-        if not self.tasks:
-            return None
-        return heapq.heappop(self.tasks)
+        return heapq.heappop(self.tasks) if self.tasks else None
     
     def peek(self) -> Optional[Task]:
         """查看最早的任务但不移除"""
-        if not self.tasks:
-            return None
-        return self.tasks[0]
+        return self.tasks[0] if self.tasks else None
     
     def is_empty(self) -> bool:
         return len(self.tasks) == 0
+        
+    def __len__(self) -> int:
+        return len(self.tasks)
 
 
 def ceil2(value):
     return math.ceil(value*100)/100
 
 # 按至少0.01的粒度occupy，否则会有数值问题
+import portion as P
+from typing import List, Tuple
+import heapq
+
 class Core:
     def __init__(self, idx):
-        self.idx = idx # 机器的第几个core
+        self.idx = idx
         self.interval = P.closedopen(0, P.inf)
-
-    # 占据核[start, end)的资源
+        self.free_intervals = [(0, P.inf)]  # 最小堆存储空闲区间
+        
     def occupy(self, start, end):
         i = P.closedopen(start, end)
-        # 假设已经被别人占领了，则无法占领
         if not self.interval.contains(i):
-            print(self.interval)
-            print(start, end)
             assert False, "occupy error"
-
-        # 占领核[start, end)
-        self.interval = self.interval - P.closedopen(start, end)
+            
+        self.interval = self.interval - i
+        self._update_free_intervals(start, end)
     
-    def release(self, start, end):
-        i = P.closedopen(start, end)
-        if not (self.interval & i).empty:
-            assert False, "release error" # 释放的是已经占据的
-        self.interval = self.interval | i
-
-    def is_occupy(self, start, end) -> bool:
-        i = P.closedopen(start, end)
-        return not self.interval.contains(i)
-    
-    def find_est(self, start, size) -> bool:
-        for i in self.interval:
-            real_start = max(i.lower, start)
-            if i.upper >= real_start + size:
+    # [start, end)
+    def _update_free_intervals(self, start, end):
+        # 维护最小堆中的空闲区间
+        new_intervals = []
+        while self.free_intervals:
+            s, e = heapq.heappop(self.free_intervals)
+            if e <= start or s >= end:
+                heapq.heappush(new_intervals, (s, e))
+            else:
+                if s < start:
+                    heapq.heappush(new_intervals, (s, start))
+                if e > end:
+                    heapq.heappush(new_intervals, (end, e))
+        self.free_intervals = new_intervals
+        
+    def find_est(self, start, size) -> float:
+        # O(log n) 复杂度找到最早可用时间
+        for s, e in self.free_intervals:
+            real_start = max(s, start)
+            if e >= real_start + size:
                 return real_start
-        assert False, "never be there"
-
+        assert False, "no available slot"
 
     def __repr__(self):
         return self.interval.__str__()

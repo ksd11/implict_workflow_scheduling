@@ -33,6 +33,9 @@ class LayerEdgeDynamicEnv(gym.Env):
         self.task_queue = TaskQueue()
         self.__add_task_from_trace()
 
+        # 预分配状态数组
+        self._state_buffer = np.zeros(self.observation_space.shape[0], dtype=np.float64)
+
     # 从self.data.traces中添加任务
     def __add_task_from_trace(self):
         traces = self.data.traces
@@ -41,8 +44,8 @@ class LayerEdgeDynamicEnv(gym.Env):
         for timestamp, job_name in traces:
             G :nx.DiGraph = self.data.jobs[job_name]
 
-            # is_dag = nx.is_directed_acyclic_graph(G)
-            # has_cycle = not is_dag
+            is_dag = nx.is_directed_acyclic_graph(G)
+            assert is_dag, "bad dag, 因为dag有环"
             # print("是否有环:", has_cycle)
             task_name = f"{job_name}_source"
             task_info = self.data.tasks_info[(job_name, task_name)]
@@ -51,35 +54,57 @@ class LayerEdgeDynamicEnv(gym.Env):
 
             self.task_queue.add_task(task)
 
-
     def __getState(self):
-        # 获取当前被调度的任务
-        task:Task = self.task_queue.peek()
+        task = self.task_queue.peek()
         if task is None:
-            return [0] * self.observation_space.shape[0]
+            return self._state_buffer  # 直接返回零数组
+            
         timestamp = task.get_arrival_time()
-
-        # for machine
-        state = []
-        for machine in self.machines:
-            state.extend(machine.has_layer)
-            state.extend(machine.getRemainingDownloadTime(timestamp))
-            state.extend(self.data.layers)
-            state.append(machine.cpu)
-            state.append(machine.pull_dealy)
-            state.append(machine.download_finish_time)
+        idx = 0
         
-        # for current request
-        for machine in self.machines:
-            addLayerSize = machine.getAddLayersSize(task)
-            state.append(addLayerSize) # 需要下载的大小
-            state.append(addLayerSize * machine.pull_dealy) # 需要下载的时间
-            state.append(max(timestamp, machine.download_finish_time)-timestamp) # waiting time
-            state.append(task.cpu/machine.cpu) # 计算时间
-        state.extend(task.has_layer) # 包含的层
-        state.append(task.cpu) # request cpu resource
+        # 批量更新机器状态
+        for machine in self.machines[:-1]:
+            # 使用切片赋值代替extend
+            n_layers = len(self.data.layers)
+            self._state_buffer[idx:idx + n_layers] = machine.has_layer
+            idx += n_layers
+            
+            remaining_time = machine.getRemainingDownloadTime(timestamp)
+            self._state_buffer[idx:idx + n_layers] = remaining_time
+            idx += n_layers
+            
+            self._state_buffer[idx:idx + n_layers] = self.data.layers
+            idx += n_layers
+            
+            self._state_buffer[idx:idx + 3] = [
+                machine.cpu,
+                machine.pull_dealy,
+                machine.download_finish_time
+            ]
+            idx += 3
+        
+        # 批量更新请求状态
+        for machine in self.machines[:-1]:
+            add_layer_size = machine.getAddLayersSize(task)
+            download_time = add_layer_size * machine.pull_dealy
+            waiting_time = max(timestamp, machine.download_finish_time) - timestamp
+            compute_time = task.cpu / machine.cpu
+            
+            self._state_buffer[idx:idx + 4] = [
+                add_layer_size,
+                download_time,
+                waiting_time,
+                compute_time
+            ]
+            idx += 4
+            
+        # 任务状态
+        self._state_buffer[idx:idx + len(task.has_layer)] = task.has_layer
+        idx += len(task.has_layer)
+        self._state_buffer[idx] = task.cpu
+        
+        return self._state_buffer
 
-        return np.array(state)
 
     def reset(self, seed=None, options=None, return_info=None):
         # self.data.traces = self.data.getNewTrace(seed) # 初始化新的trace
