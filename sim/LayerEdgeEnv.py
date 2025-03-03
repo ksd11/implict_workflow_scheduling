@@ -60,11 +60,9 @@ class LayerEdgeEnv(gym.Env):
         return np.array(state)
 
     def reset(self, seed=None, options=None, return_info=None):
-        if seed is not None:
-            np.random.seed(seed)
         self.timestamp = 0
         self.trace_idx = 0
-        self.data.getAnotherTrace() # 初始化新的trace
+        self.data.getAnotherTrace(seed=seed, trace_len=options['trace_len']) # 初始化新的trace
         for machine in self.machines:
             machine.reset()
         self.cloud.reset()

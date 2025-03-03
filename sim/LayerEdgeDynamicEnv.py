@@ -107,7 +107,7 @@ class LayerEdgeDynamicEnv(gym.Env):
 
 
     def reset(self, seed=None, options=None, return_info=None):
-        self.data.traces = self.data.getNewTrace(seed) # 初始化新的trace
+        self.data.traces = self.data.getNewTrace(seed=seed, trace_len = options['trace_len']) # 初始化新的trace
         for machine in self.machines:
             machine.reset()
         self.clear_schedule_info()

@@ -114,9 +114,10 @@ class Data:
         self.cloud = self.getCloud()
         # return machines, layers, containers, trace
     
-    def getAnotherTrace(self):
+    def getAnotherTrace(self, seed = None, trace_len = 100):
+        np.random.seed(seed=seed)
         # if not hasattr(self, 'trace'):
-        self.trace = self.getTrace(self.Len)
+        self.trace = self.getTrace(trace_len)
         return self.trace
         # return self.trace
 
