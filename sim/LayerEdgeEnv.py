@@ -59,10 +59,15 @@ class LayerEdgeEnv(gym.Env):
 
         return np.array(state)
 
-    def reset(self, seed=None, options=None, return_info=None):
+    def reset(self, seed=None, options={'trace_len':100}, return_info=None):
         self.timestamp = 0
         self.trace_idx = 0
-        self.data.getAnotherTrace(seed=seed, trace_len=options['trace_len']) # 初始化新的trace
+
+        trace_len = self.data.Len # 读取默认的
+        if options is not None and 'trace_len' in options:
+            trace_len = options['trace_len']
+
+        self.data.getAnotherTrace(seed=seed, trace_len=trace_len) # 初始化新的trace
         for machine in self.machines:
             machine.reset()
         self.cloud.reset()
