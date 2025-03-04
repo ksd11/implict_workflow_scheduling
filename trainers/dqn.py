@@ -7,6 +7,7 @@ import numpy as np
 from .trainer import Trainer,CfgType
 from stable_baselines3.common.monitor import Monitor
 from .network.custom_dqn import CustomDQNPolicy
+from stable_baselines3.common.utils import get_linear_fn
 
 class DQN(Trainer):
     def __init__(self, agent_cfg: CfgType, env_cfg: CfgType, train_cfg: CfgType):
@@ -30,6 +31,14 @@ class DQN(Trainer):
             , "exploration_final_eps"
         ]
         
+        initial_lr = 1e-3
+        final_lr = 1e-5
+        lr_schedule = get_linear_fn(
+            initial_lr,
+            final_lr,
+            1
+        )
+        train_cfg["learning_rate"] = lr_schedule
         self.model = self._init_model(model=ST_DQN, train_cfg=train_cfg, params=params)    
 
     def _set(self, source, dest, key):
