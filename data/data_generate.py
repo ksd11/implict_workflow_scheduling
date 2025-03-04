@@ -251,7 +251,7 @@ class DataGenerator:
                         'cpu': np.random.uniform(0.5*config._func_comp, 1.5*config._func_comp)
                     }
         
-        container_ids = list(range(len(self.containers)))
+        container_ids = list(range(len(self.containers)-1)) # 排除最后一个container id
         n = len(container_ids)
     
         # 生成 Zipf 分布的权重
@@ -368,9 +368,9 @@ class DataGenerator:
         self.containers = []
         for _, row in containers_df.iterrows():
             if pd.isna(row['layers']):
-                continue
-            self.containers.append(
-                list(map(int, row['layers'].split(','))))
+                self.containers.append([])
+            else:
+                self.containers.append(list(map(int, row['layers'].split(','))))
         
         # 5. 加载任务-容器映射
         tasks_info_df = pd.read_csv(f'{path}/tasks_info.csv')
@@ -436,9 +436,9 @@ def main():
     generator.generate(
         job_csv='data/selected_jobs.csv',
         num_edge_nodes=5,
-        num_layers=1000,
-        num_containers=500,
-        trace_len=1000
+        num_layers=100,
+        num_containers=50,
+        trace_len=100
     )
     
     # 保存数据
