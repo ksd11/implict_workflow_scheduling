@@ -2,7 +2,7 @@ agent:
 trainer:
   trainer_cls: 'PPO'
   policy: "MlpPolicy"
-  learning_rate: 1e-4
+  learning_rate: 1e-5
   n_steps: 1024
   batch_size: 8192 # env_size * n_steps
   n_epochs: 16

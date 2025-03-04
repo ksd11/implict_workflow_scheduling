@@ -20,6 +20,7 @@ class LayerEdgeDynamicEnv(gym.Env):
         N,L = self.N, self.L
         obs_dim = N * (3*L+3) + 4 * N + L + 1
         act_dim = N+1
+        self.Len = len(self.data.traces)
 
         self.observation_space = spaces.Box(
             low=0, high=math.inf, shape=(obs_dim,), dtype=np.float64)
@@ -107,7 +108,11 @@ class LayerEdgeDynamicEnv(gym.Env):
 
 
     def reset(self, seed=None, options={'trace_len':100}, return_info=None):
-        self.data.traces = self.data.getNewTrace(seed=seed, trace_len = options['trace_len']) # 初始化新的trace
+        trace_len = self.Len # 读取默认的
+        if options is not None and 'trace_len' in options:
+            trace_len = options['trace_len']
+
+        self.data.traces = self.data.getNewTrace(seed=seed, trace_len = trace_len) # 初始化新的trace
         for machine in self.machines:
             machine.reset()
         self.clear_schedule_info()
@@ -119,9 +124,9 @@ class LayerEdgeDynamicEnv(gym.Env):
         return self.__getState(), {}
     
     # 移除任务，并将其后置任务添加到任务队列
-    def __next(self):
+    # 传入当前任务部署的位置，以及任务的完成时间
+    def __next(self, pos, finish_time):
         task :Task = self.task_queue.get_task()
-        finish_time = task.get_finish_time()
 
         G :nx.DiGraph = self.data.jobs[task.job_name]
         
@@ -138,16 +143,18 @@ class LayerEdgeDynamicEnv(gym.Env):
             
             # 按概率选择一个后继节点
             chosen_succ = np.random.choice(successors, p=probs)
+            data_size = G[task.task_name][chosen_succ].get('data_size', 0)
             
             # 添加选中的后继任务到队列
             new_task = Task(
                 job_name=task.job_name,
                 task_name=chosen_succ,
                 arrival_time=finish_time, # 上一个任务结束之后才能开始
-                data=self.data
+                data=self.data,
+                parent_pos=pos,
+                data_size=data_size
             )
             self.task_queue.add_task(new_task)
-
 
 
     def step(self, action):
@@ -157,7 +164,6 @@ class LayerEdgeDynamicEnv(gym.Env):
             assert False, "Env is done!!"
 
         start_time, finish_time = self.machines[action].addTask(task)
-        task.set_finish_time(finish_time)
 
         reward = -finish_time/1000
         
@@ -167,7 +173,7 @@ class LayerEdgeDynamicEnv(gym.Env):
                 , start_time=start_time, finish_time=finish_time)
         
         # 到下一个task
-        self.__next()
+        self.__next(action, finish_time)
         return self.__getState(), reward, self.__idDone(), False, {"schedule_info": self.schedule_info}
     
     def record_schedule_info(self, task_id, server_id, core_id

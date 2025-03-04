@@ -21,5 +21,8 @@ trainer:
       'actions_dim': 6 # 5台机器+一台云服务器
       'nodes_net_arch': [512, 256, 128]
       'tasks_net_arch': [128, 128, 128]
+  # exploration_initial_eps: 0.9
+  # exploration_final_eps: 0.05
 env:
-  id: "LayerEdgeEnv-v0"
+  # id: "LayerEdgeEnv-v0"
+  id: "LayerEdgeDynamicEnv-v0"

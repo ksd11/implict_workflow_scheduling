@@ -7,7 +7,15 @@ import heapq
 from typing import Any, Optional
 
 class Task:
-    def __init__(self, job_name: str, task_name :str, arrival_time: float, data: DataGenerator):
+    '''
+        job_name和task_name唯一确定一个任务
+        arrival_time: 任务到达的时间（父任务执行完成并选择该子任务执行）
+        data: 全局信息，方便获取数据
+        parent_pos和data_size确定了数据传输过来的时间：
+            data_ready_time = arrival_time + dealy[parent_pos][cur] * data_size
+            任务不能在数据准备好之前执行
+    '''
+    def __init__(self, job_name: str, task_name :str, arrival_time: float, data: DataGenerator, parent_pos: int = 0, data_size: float = 0):
         task_info = data.tasks_info[(job_name,task_name)]
         self.job_name = job_name
         self.task_name = task_name
@@ -15,6 +23,9 @@ class Task:
         self.cpu = task_info['cpu']
         self.arrival_time = arrival_time
         self.data = data
+        self.parent_pos = parent_pos
+        self.data_size = data_size
+
         self.has_layer = [] # 任务含有Layer的位图
         self.container_id = task_info['container_id']
         self.layer = data.containers[self.container_id]
@@ -28,10 +39,6 @@ class Task:
         return self.arrival_time
     def get_task_id(self):
         return (self.job_name, self.task_name)
-    def set_finish_time(self, finish_time):
-        self.finish_time = finish_time
-    def get_finish_time(self):
-        return self.finish_time
     
     # 用于优先队列比较
     def __lt__(self, other):
@@ -198,6 +205,7 @@ class Machine:
         self.core_number = int(node_info['core_number'])
         self.idx = idx
         self.layer_size = data.layers
+        self.data = data
         self.reset()
 
     def reset(self):
@@ -244,13 +252,18 @@ class Machine:
         self.cores[core_id].occupy(start, end)
    
     def addTask(self, task: Task) -> Tuple[float, float]:
+        
         timestamp = task.get_arrival_time()
+        parent_pos = task.parent_pos
+        data_size = task.data_size
+        data_ready_time = timestamp + self.data.delay_matrix[parent_pos][self.idx] * data_size
+
         # self.tasks.append(task)
         add_layers = self.getAddLayers(task)
         self.addNewLayers(add_layers)
 
-        # 计算Layer下载完成时间
-        ready_time =ceil2(max(timestamp, self.download_finish_time))
+        # ready_time为数据准备好，并且镜像层也准备好
+        ready_time =ceil2(max(data_ready_time, self.download_finish_time))
         
         # 计算Task完成时间
         execute_time = ceil2(task.cpu / self.cpu)

@@ -26,6 +26,8 @@ class DQN(Trainer):
             , "verbose"
             , "tensorboard_log"
             , "device"
+            , "exploration_initial_eps"
+            , "exploration_final_eps"
         ]
         
         self.model = self._init_model(model=ST_DQN, train_cfg=train_cfg, params=params)    

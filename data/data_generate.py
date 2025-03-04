@@ -42,8 +42,8 @@ LFR
 class Config:
     def __init__(self):
         # 机器的信息
-        self.e2e = 1         # edge和edge之间数据传输延迟
-        self.e2c = 15        # edge和cloud之间数据传输延迟
+        self._edge_delay = 1         # edge和edge之间数据传输延迟
+        self.cloud_delay = 15        # edge和cloud之间数据传输延迟
         self._gamma = 1      # average layer pulling latency, cloud is 0.5
         self.lo_storage = 10
         self.hi_storage = 30
@@ -101,7 +101,22 @@ class DataGenerator:
     
     def _generate_nodes(self, num_edge_nodes):
         """生成边缘节点和云节点信息"""
-        self.nodes = [0] * (num_edge_nodes+1)
+        n = num_edge_nodes + 1
+        self.nodes = [0] * (n)
+        self.delay_matrix = np.zeros((n,n))
+
+        # 生成边缘节点间延迟
+        for i in range(num_edge_nodes):
+            for j in range(i+1, num_edge_nodes):
+                delay = np.random.uniform(0.5*config._edge_delay, 1.5*config._edge_delay)
+                self.delay_matrix[i][j] = delay
+                self.delay_matrix[j][i] = delay
+                
+        # 设置边缘到云的延迟
+        for i in range(num_edge_nodes):
+            self.delay_matrix[i][n-1] = config.cloud_delay
+            self.delay_matrix[n-1][i] = config.cloud_delay
+
         # 生成边缘节点
         for i in range(num_edge_nodes):
             self.nodes[i] = {
@@ -315,6 +330,16 @@ class DataGenerator:
         # 保存请求序列
         pd.DataFrame(self.traces, columns=['timestamp', 'job_id']).to_csv(
             f'{path}/traces.csv', index=False)
+        
+        # 将延迟矩阵保存为CSV
+        n_nodes = len(self.nodes)
+        node_ids = [f'node_{i}' for i in range(n_nodes-1)] + ['cloud']
+        delay_df = pd.DataFrame(
+            self.delay_matrix,
+            index=node_ids,    # 行索引
+            columns=node_ids   # 列索引
+        )
+        delay_df.to_csv(f'{path}/delay_matrix.csv')
     
     def load(self, path):
         """从目录加载数据"""
@@ -360,6 +385,11 @@ class DataGenerator:
         # 6. 加载请求序列
         traces_df = pd.read_csv(f'{path}/traces.csv')
         self.traces = list(zip(traces_df['timestamp'], traces_df['job_id']))
+
+        # 从CSV加载延迟矩阵
+        delay_df = pd.read_csv(f'{path}/delay_matrix.csv', index_col=0)
+        self.delay_matrix = delay_df.values
+
         return self
     
     def getNewTrace(self, seed, trace_len = 100, mean_interarrival = 10):
@@ -406,9 +436,9 @@ def main():
     generator.generate(
         job_csv='data/selected_jobs.csv',
         num_edge_nodes=5,
-        num_layers=200,
-        num_containers=100,
-        trace_len=100
+        num_layers=1000,
+        num_containers=500,
+        trace_len=1000
     )
     
     # 保存数据
