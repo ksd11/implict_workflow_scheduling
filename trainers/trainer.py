@@ -77,7 +77,7 @@ class Trainer(ABC):
         # self.model = self.model.__class__.load(path, env = self.env, print_system_info = True)
         return self
     
-    def eval(self, msg, n_eval_episodes=5, deterministic=True, render=False):
+    def eval(self, msg, n_eval_episodes=1, deterministic=True, render=False):
         print(msg)
         mean_reward, std_reward = evaluate_policy(self.model, self.env, n_eval_episodes=n_eval_episodes, deterministic=deterministic,render=render)
         print("mean_reward:",mean_reward,"std_reward:",std_reward)

@@ -49,9 +49,9 @@ class DQN(Trainer):
         self.pre_train()
 
         # # 开始训练
-        # self.model.learn(total_timesteps=self.train_cfg["total_timesteps"], 
-                        #  progress_bar=self.train_cfg["progress_bar"], callback=self.callback())
-        # self.post_train()
+        self.model.learn(total_timesteps=self.train_cfg["total_timesteps"], 
+                         progress_bar=self.train_cfg["progress_bar"], callback=self.callback())
+        self.post_train()
         
 
     
