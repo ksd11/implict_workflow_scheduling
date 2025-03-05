@@ -11,6 +11,11 @@ CfgType = dict[str, Any]
 
 from stable_baselines3.common.callbacks import EvalCallback, BaseCallback,StopTrainingOnNoModelImprovement
 
+
+from stable_baselines3.common.vec_env import DummyVecEnv, SubprocVecEnv
+import torch
+import numpy as np
+
 class TensorboardCallback(BaseCallback):
     def __init__(self, verbose=0):
         super(TensorboardCallback, self).__init__(verbose)
@@ -47,10 +52,9 @@ class Trainer(ABC):
             env = Monitor(env)  # 添加Monitor包装器
             return env
         # self.env = Monitor(gym.make(**env_cfg))
-        # return get_env()
-        return SubprocVecEnv([get_env for _ in range(8)], start_method='fork')
-        # self.env = MyWrapper()
-        # self.env = gym.make(**env_cfg)
+        return get_env()
+        # return SubprocVecEnv([get_env for _ in range(8)], start_method='fork')
+        # return DummyVecEnv([get_env for _ in range(8)])
 
     def pre_train(self):
         self.eval("Before train...")
@@ -91,18 +95,19 @@ class Trainer(ABC):
         # )
 
         # early stopping callback
-        eval_callback = EvalCallback(self.env,
-                best_model_save_path=self.get_best_model_path(),
-                log_path=self.get_best_model_path(), 
-                eval_freq=5000,  # 每几步评估一次                    
-                deterministic=True, 
-                render=False,
-                n_eval_episodes=5, # 每次评估运行5个episodes
-                # callback_after_eval=stop_train_callback,
-                verbose=1 )
+        # eval_callback = EvalCallback(self.env,
+        #         best_model_save_path=self.get_best_model_path(),
+        #         log_path=self.get_best_model_path(), 
+        #         eval_freq=5000,  # 每几步评估一次                    
+        #         deterministic=True, 
+        #         render=False,
+        #         n_eval_episodes=5, # 每次评估运行5个episodes
+        #         # callback_after_eval=stop_train_callback,
+        #         verbose=1 )
         tensorboard_callback = TensorboardCallback()
 
-        return [eval_callback, tensorboard_callback]
+        # return [eval_callback, tensorboard_callback]
+        return [tensorboard_callback]
     
     # 获取最终模型保存位置
     def get_model_path(self):

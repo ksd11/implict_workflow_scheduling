@@ -57,7 +57,31 @@ class LayerEdgeDynamicEnv(gym.Env):
 
             self.task_queue.add_task(task)
 
+    # 优化状态计算
     def __getState(self):
+        # 1. 预计算常用值
+        task = self.task_queue.peek()
+        if task is None:
+            return self._state_buffer
+    
+        # 2. 向量化机器状态计算
+        machine_states = np.zeros((self.totoal_server, 4))
+        machine_states[:, 0] = [m.cpu for m in self.machines]
+        machine_states[:, 1] = [m.storage.remain() for m in self.machines]
+        machine_states[:, 2] = [m.download_finish_time - task.get_arrival_time() for m in self.machines]
+        machine_states[:, 3] = [m.getAddLayersSize(task) * m.pull_dealy for m in self.machines]
+        
+        # 3. 批量更新状态缓冲区
+        idx = 0
+        self._state_buffer[idx:idx + self.totoal_server * 4] = machine_states.flatten()
+        idx += self.totoal_server * 4
+        self._state_buffer[idx:idx + self.totoal_server * self.totoal_server] = self.data.delay_matrix.flatten()
+        idx += self.totoal_server * self.totoal_server
+        self._state_buffer[idx:idx + 3] = [task.cpu, task.parent_pos, task.data_size]
+
+        return self._state_buffer
+
+    def __getState1(self):
         task = self.task_queue.peek()
         if task is None:
             return self._state_buffer  # 直接返回零数组
