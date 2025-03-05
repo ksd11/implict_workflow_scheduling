@@ -10,12 +10,12 @@ trainer:
     net_arch: 
       pi: [256, 128]
       vf: [256, 128]
-    features_extractor_class: 'LayerDependentExtractor'
-    features_extractor_kwargs: 
-      'features_dim': 256 
-      'actions_dim': 6 # 5台机器+一台云服务器
-      'nodes_net_arch': [512, 256, 128]
-      'tasks_net_arch': [128, 128, 128]
+    # features_extractor_class: 'LayerDependentExtractor'
+    # features_extractor_kwargs: 
+    #   'features_dim': 256 
+    #   'actions_dim': 6 # 5台机器+一台云服务器
+    #   'nodes_net_arch': [512, 256, 128]
+    #   'tasks_net_arch': [128, 128, 128]
   # policy_kwargs:
   #   net_arch: [1024, 512, 256, 128]
       # pi: [1024, 256, 64]
@@ -23,7 +23,7 @@ trainer:
   gamma: 0.99
   verbose: 0 
   tensorboard_log: "./tmp/tensorboard/"
-  total_timesteps: 2e5
+  total_timesteps: 2e6
   progress_bar: True
   device: "cpu"
   # 3. PPO特有参数

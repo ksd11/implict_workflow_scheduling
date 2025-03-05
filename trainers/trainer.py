@@ -52,8 +52,8 @@ class Trainer(ABC):
             env = Monitor(env)  # 添加Monitor包装器
             return env
         # self.env = Monitor(gym.make(**env_cfg))
-        return get_env()
-        # return SubprocVecEnv([get_env for _ in range(8)], start_method='fork')
+        # return get_env()
+        return SubprocVecEnv([get_env for _ in range(8)], start_method='fork')
         # return DummyVecEnv([get_env for _ in range(8)])
 
     def pre_train(self):

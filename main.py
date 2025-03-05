@@ -43,9 +43,9 @@ scheduler = {
     "dqn":{
         "config_path": "config/dqn.yaml"
     },
-    # "ppo":{
-    #     "config_path": "config/ppo.yaml"
-    # }, 
+    "ppo":{
+        "config_path": "config/ppo.yaml"
+    }, 
     "greedy": {
         "edge_server_num": env.N,
         "layer_num": env.L
@@ -111,10 +111,10 @@ def comparation():
     results = {}
     request_len_array = [100,200,400,600,800,1000]
     for sched, info in scheduler.items():
-        scheduler = scheduler_mapping[sched](**info)
+        schedulerCls = scheduler_mapping[sched](**info)
         results[sched] = []
         for trace_len in request_len_array:
-            info = one_experiment(env=env, scheduler=scheduler, seed=0, options={'trace_len': trace_len})
+            info = one_experiment(env=env, scheduler=schedulerCls, seed=0, options={'trace_len': trace_len})
             results[sched].append(info["makespan"])
             print(f"scheduler: {sched}")
             print(f"trace_len: {trace_len}")
@@ -126,7 +126,7 @@ def comparation():
     # 使用示例
     results = {
         "dqn": results["dqn"],
-        # "ppo": results["ppo"],
+        "ppo": results["ppo"],
         "random": results["random"],
         "greedy": results["greedy"]
     }
@@ -141,6 +141,6 @@ def test0():
     
 
 if __name__ == "__main__":
-    # comparation()
-    test0()
+    comparation()
+    # test0()
     
