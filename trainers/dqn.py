@@ -31,14 +31,14 @@ class DQN(Trainer):
             , "exploration_final_eps"
         ]
         
-        initial_lr = 1e-3
-        final_lr = 1e-5
-        lr_schedule = get_linear_fn(
-            initial_lr,
-            final_lr,
-            1
-        )
-        train_cfg["learning_rate"] = lr_schedule
+        # initial_lr = 1e-3
+        # final_lr = 1e-5
+        # lr_schedule = get_linear_fn(
+        #     initial_lr,
+        #     final_lr,
+        #     1
+        # )
+        # train_cfg["learning_rate"] = lr_schedule
         self.model = self._init_model(model=ST_DQN, train_cfg=train_cfg, params=params)    
 
     def _set(self, source, dest, key):

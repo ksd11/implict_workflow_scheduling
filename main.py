@@ -37,8 +37,8 @@ def make_parser():
 
     return parser
 
-env = sim.LayerEdgeEnv()
-# env = sim.LayerEdgeDynamicEnv()
+# env = sim.LayerEdgeEnv()
+env = sim.LayerEdgeDynamicEnv()
 scheduler = {
     "dqn":{
         "config_path": "config/dqn.yaml"

@@ -225,9 +225,9 @@ class Machine:
         for i in range(self.L):
             # 如果没有下载过或者已经下载完成
             if not self.storage.contain(i) or self.storage.get_download_finish_time(i) <= timestamp:
-                res.append(timestamp)
+                res.append(0)
             else:
-                res.append(self.storage.get_download_finish_time(i))
+                res.append(self.storage.get_download_finish_time(i)-timestamp)
         return res
     
     # 判断是否还能容纳此任务

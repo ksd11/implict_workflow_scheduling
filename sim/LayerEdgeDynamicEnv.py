@@ -80,7 +80,7 @@ class LayerEdgeDynamicEnv(gym.Env):
             self._state_buffer[idx:idx + 3] = [
                 machine.cpu,
                 machine.pull_dealy,
-                machine.download_finish_time
+                machine.download_finish_time - timestamp
             ]
             idx += 3
         
