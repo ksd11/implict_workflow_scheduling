@@ -194,12 +194,16 @@ class Storage:
     def clear(self):
         self.used = 0
         self.cache = OrderedDict()
+
+    # 返回剩余空间
+    def remain(self):
+        return self.capacity - self.used
     
 
 class Machine:
     def __init__(self, idx: int, node_info: dict, data: dict):
         self.cpu = node_info['cpu']
-        self.storage = Storage(node_info['storage'])
+        self.storage: Storage = Storage(node_info['storage'])
         self.pull_dealy = node_info['pull_delay']
         self.L = len(data.layers)
         self.core_number = int(node_info['core_number'])

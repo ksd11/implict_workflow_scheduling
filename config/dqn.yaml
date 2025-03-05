@@ -2,7 +2,7 @@ agent:
 trainer:
   trainer_cls: 'DQN'
   policy: "MlpPolicy"
-  learning_rate: 1e-3
+  learning_rate: 1e-4
   batch_size: 512
   gamma: 0.9
   buffer_size: 50000
@@ -10,17 +10,17 @@ trainer:
   target_update_interval: 3000
   verbose: 0 
   tensorboard_log: "./tmp/tensorboard/"
-  total_timesteps: 2e5
+  total_timesteps: 2e6
   progress_bar: True
   device: "cuda"
   policy_kwargs: 
     net_arch: [256, 256]
-    features_extractor_class: 'LayerDependentExtractor'
-    features_extractor_kwargs: 
-      'features_dim': 256 
-      'actions_dim': 6 # 5台机器+一台云服务器
-      'nodes_net_arch': [512, 256, 128]
-      'tasks_net_arch': [128, 128, 128]
+    # features_extractor_class: 'LayerDependentExtractor'
+    # features_extractor_kwargs: 
+    #   'features_dim': 256 
+    #   'actions_dim': 6 # 5台机器+一台云服务器
+    #   'nodes_net_arch': [512, 256, 128]
+    #   'tasks_net_arch': [128, 128, 128]
   # exploration_initial_eps: 0.9
   # exploration_final_eps: 0.05
 env:

@@ -15,10 +15,12 @@ class LayerEdgeDynamicEnv(gym.Env):
         generator.load("data/workload_data")
         # pprint(generator.getSystemInfo())
         self.data = generator
-        self.N = len(self.data.nodes)-1
-        self.L = len(self.data.layers)
+        self.totoal_server = len(self.data.nodes) # 总server的个数
+        self.N = len(self.data.nodes)-1  # edge_Server的个数
+        self.L = len(self.data.layers)   # layer的个数
         N,L = self.N, self.L
-        obs_dim = N * (3*L+3) + 4 * N + L + 1
+        # obs_dim = N * (3*L+3) + 4 * N + L + 1
+        obs_dim = self.totoal_server * (4 + self.totoal_server) + 3
         act_dim = N+1
         self.Len = len(self.data.traces)
 
@@ -56,6 +58,38 @@ class LayerEdgeDynamicEnv(gym.Env):
             self.task_queue.add_task(task)
 
     def __getState(self):
+        task = self.task_queue.peek()
+        if task is None:
+            return self._state_buffer  # 直接返回零数组
+            
+        timestamp = task.get_arrival_time()
+        idx = 0
+
+        # 机器信息
+        for i, machine in enumerate(self.machines):
+            add_layer_size = machine.getAddLayersSize(task)
+            download_time = add_layer_size * machine.pull_dealy
+            self._state_buffer[idx:idx+4] = [
+                machine.cpu
+                ,machine.storage.remain()
+                ,machine.download_finish_time
+                ,download_time
+            ]
+            idx += 4
+            self._state_buffer[idx:idx+self.totoal_server] = self.data.delay_matrix[i]
+            idx += self.totoal_server
+
+        # 任务信息
+        self._state_buffer[idx:idx+3] = [
+            task.cpu
+            ,task.parent_pos
+            ,task.data_size
+        ]
+
+        return self._state_buffer
+            
+
+    def __getState_old(self):
         task = self.task_queue.peek()
         if task is None:
             return self._state_buffer  # 直接返回零数组
