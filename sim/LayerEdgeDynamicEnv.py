@@ -33,8 +33,8 @@ class LayerEdgeDynamicEnv(gym.Env):
         for idx, node_info in enumerate(self.data.nodes):
             self.machines.append(Machine(idx, node_info, self.data))
         
-        self.task_queue = TaskQueue()
-        self.__add_task_from_trace()
+        # self.task_queue = TaskQueue()
+        # self.__add_task_from_trace()
 
         # 预分配状态数组
         self._state_buffer = np.zeros(self.observation_space.shape[0], dtype=np.float64)
@@ -70,20 +70,20 @@ class LayerEdgeDynamicEnv(gym.Env):
             add_layer_size = machine.getAddLayersSize(task)
             download_time = add_layer_size * machine.pull_dealy
             self._state_buffer[idx:idx+4] = [
-                machine.cpu
-                ,machine.storage.remain()
-                ,machine.download_finish_time
-                ,download_time
+                machine.cpu                              # cpu资源
+                ,machine.storage.remain()                # 剩余空间的大小
+                ,machine.download_finish_time - timestamp # 还需要下载的时间
+                ,download_time                           # 增量下载的时间
             ]
             idx += 4
-            self._state_buffer[idx:idx+self.totoal_server] = self.data.delay_matrix[i]
+            self._state_buffer[idx:idx+self.totoal_server] = self.data.delay_matrix[i] # 和其他机器的通信延迟
             idx += self.totoal_server
 
         # 任务信息
         self._state_buffer[idx:idx+3] = [
-            task.cpu
-            ,task.parent_pos
-            ,task.data_size
+            task.cpu                       # cpu 资源
+            ,task.parent_pos               # 父节点位置
+            ,task.data_size                # 传输数据大小
         ]
 
         return self._state_buffer
@@ -213,6 +213,7 @@ class LayerEdgeDynamicEnv(gym.Env):
     def record_schedule_info(self, task_id, server_id, core_id
                              , arrival_time, start_time, finish_time):
         self.schedule_info[task_id] = {
+            "task_id": task_id,
             "server_id": server_id,
             "core_id": core_id,
             "arrival_time": arrival_time,

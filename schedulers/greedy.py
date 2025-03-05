@@ -1,7 +1,7 @@
 
 from .scheduler import Scheduler
 
-# 只调度到edge，并且选择下载时间最短的那台机器
+# 选择下载时间最短的那台机器
 class GreedyScheduler(Scheduler):
     def __init__(self, edge_server_num, layer_num):
         self.total_server = edge_server_num + 1
@@ -13,10 +13,11 @@ class GreedyScheduler(Scheduler):
         # machine_state = state[:self.N * (3 * self.L + 3)]
         # task_state = state[self.N * (3 * self.L + 3):]  
         machine_state = state[:total_server * (total_server + 4)].reshape((total_server,total_server+4))
+        # task_state = state[-3:]
 
         download_finish_time = []
         for i in range(total_server):
-            download_finish_time.append(machine_state[i][2])
+            download_finish_time.append(machine_state[i][2] + machine_state[i][3])
             # download_finish_time.append(
             #     task_state[i*4+1]
             #     +task_state[i*4+2])

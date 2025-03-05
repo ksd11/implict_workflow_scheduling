@@ -52,7 +52,7 @@ class Config:
 
         # 请求信息
         self._func_comp = 2
-        self.request_interval = 10  # 请求到达的间隔
+        self.request_interval = 1  # 请求到达的间隔
         self._d = 0.5        # average data transmission size
 
         # layer信息
@@ -60,6 +60,12 @@ class Config:
         self.hi_layer_size = 2
         self.lo_func_layer_number = 5
         self.hi_func_layer_number = 20
+
+        # cluster相关
+        self.num_edge_server = 5
+        self.num_layers = 1000
+        self.num_containers = 500
+        self.trace_len = 1000
 
 # 创建全局配置对象
 config = Config()
@@ -74,8 +80,13 @@ class DataGenerator:
         self.task_containers = {}  # 任务-容器映射
         self.traces = []        # 请求序列
         
-    def generate(self, job_csv, num_edge_nodes=5, num_layers=1000, num_containers=500, 
-                 trace_len=1000, mean_interarrival=10, seed=42, zipf_a = 1.5):
+    def generate(self, job_csv
+                 , num_edge_nodes=config.num_edge_server
+                 , num_layers=config.num_layers
+                 , num_containers=config.num_containers
+                 , trace_len=config.trace_len
+                 , mean_interarrival=config.request_interval
+                 , seed=42, zipf_a = 1.5):
         """生成所有需要的数据"""
         np.random.seed(seed)
         
@@ -392,7 +403,7 @@ class DataGenerator:
 
         return self
     
-    def getNewTrace(self, seed, trace_len = 100, mean_interarrival = 10):
+    def getNewTrace(self, seed, trace_len = 100, mean_interarrival = config.request_interval):
         """生成新的请求序列"""
         np.random.seed(seed)
         
@@ -435,10 +446,10 @@ def main():
     # 生成数据
     generator.generate(
         job_csv='data/selected_jobs.csv',
-        num_edge_nodes=5,
-        num_layers=100,
-        num_containers=50,
-        trace_len=100
+        num_edge_nodes=config.num_edge_server,
+        num_layers=config.num_layers,
+        num_containers=config.num_containers,
+        trace_len=config.trace_len
     )
     
     # 保存数据

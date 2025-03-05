@@ -43,9 +43,9 @@ scheduler = {
     "dqn":{
         "config_path": "config/dqn.yaml"
     },
-    "ppo":{
-        "config_path": "config/ppo.yaml"
-    }, 
+    # "ppo":{
+    #     "config_path": "config/ppo.yaml"
+    # }, 
     "greedy": {
         "edge_server_num": env.N,
         "layer_num": env.L
@@ -55,14 +55,15 @@ scheduler = {
         "layer_num": env.L
     }}
 
-def report(info:dict):
-    # for k in info:
-        # print(info[k])
+def report(info:dict, verbose = False):
     makespan = max([info[k]['finish_time'] for k in info])
-    # print("Makespan is: ", makespan)
+    if verbose:
+        for k in info:
+            print(info[k])
+        print("Makespan is: ", makespan)
     return makespan
 
-def one_experiment(env, scheduler: Scheduler, seed = None, options = {'trace_len': 100}):
+def one_experiment(env, scheduler: Scheduler, seed = None, options = {'trace_len': 100}, verbose = False):
 
     state,_ = env.reset(seed=seed, options=options)
     reward_sum = 0
@@ -77,7 +78,7 @@ def one_experiment(env, scheduler: Scheduler, seed = None, options = {'trace_len
 
     env.close()
     # pprint(info)
-    makespan = report(info['schedule_info'])
+    makespan = report(info['schedule_info'], verbose=verbose)
     # return reward_sum
     return {
         "reward_sum": reward_sum,
@@ -106,16 +107,7 @@ def plot_results(results: dict, x_values: list, title: str = "算法对比"):
     plt.close()
 
 
-
-if __name__ == "__main__":
-    # params = make_parser().parse_args()
-    # cfg = load(params.filename)
-    # env = sim.LayerEdgeDynamicEnv()
-
-    # scheduler = schedulers.GreedyScheduler(env.N, env.L)
-    # scheduler = schedulers.TrainableScheduler(cfg)
-    # scheduler = schedulers.RandomScheduler(env.N, env.L)
-
+def comparation():
     results = {}
     request_len_array = [100,200,400,600,800,1000]
     for sched, info in scheduler.items():
@@ -134,9 +126,21 @@ if __name__ == "__main__":
     # 使用示例
     results = {
         "dqn": results["dqn"],
-        "ppo": results["ppo"],
+        # "ppo": results["ppo"],
         "random": results["random"],
         "greedy": results["greedy"]
     }
 
     plot_results(results, request_len_array, "不同算法在不同请求数量下的完成时间对比")
+
+def test0():
+    scheduler_name = "dqn"
+    sched = scheduler_mapping[scheduler_name](**scheduler[scheduler_name])
+    info = one_experiment(env=env, scheduler=sched, seed=0, options={'trace_len': 1000}, verbose=False)
+    print(info)
+    
+
+if __name__ == "__main__":
+    # comparation()
+    test0()
+    
