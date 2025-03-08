@@ -339,7 +339,7 @@ class DataGenerator:
         pd.DataFrame(tasks_info_data).to_csv(f'{path}/tasks_info.csv', index=False)
         
         # 保存请求序列
-        pd.DataFrame(self.traces, columns=['timestamp', 'job_id']).to_csv(
+        pd.DataFrame(self.traces, columns=['timestamp', 'job_id','server_location']).to_csv(
             f'{path}/traces.csv', index=False)
         
         # 将延迟矩阵保存为CSV
@@ -395,7 +395,7 @@ class DataGenerator:
         
         # 6. 加载请求序列
         traces_df = pd.read_csv(f'{path}/traces.csv')
-        self.traces = list(zip(traces_df['timestamp'], traces_df['job_id']))
+        self.traces = list(zip(traces_df['timestamp'], traces_df['job_id'], traces_df['server_location']))
 
         # 从CSV加载延迟矩阵
         delay_df = pd.read_csv(f'{path}/delay_matrix.csv', index_col=0)
@@ -415,8 +415,13 @@ class DataGenerator:
         # 随机选择作业
         job_ids = list(self.jobs.keys())
         selected_jobs = np.random.choice(job_ids, size=trace_len)
-        
-        return list(zip(timestamps, selected_jobs))
+
+        # 随机生成边缘服务器位置
+        num_edge_servers = len(self.nodes) - 1  # 减去云服务器
+        server_locations = np.random.randint(0, num_edge_servers, size=trace_len)
+
+        # 返回三元组列表: (timestamp, job_id, server_location)
+        return list(zip(timestamps, selected_jobs, server_locations))
     
     def getSystemInfo(self):
         """返回系统信息"""
