@@ -65,7 +65,7 @@ class Config:
         self.num_edge_server = 5
         self.num_layers = 1000
         self.num_containers = 500
-        self.trace_len = 100
+        self.trace_len = 1000
 
 # 创建全局配置对象
 config = Config()
@@ -217,13 +217,13 @@ class DataGenerator:
             for node, prob in zip(start_nodes, probabilities):
                 G.add_edge(source_node, node, 
                           probability=prob,
-                          data_size=0)  # 虚拟边的数据传输大小为0
+                          data_size=np.random.uniform(0.5*config._d, 1.5*config._d))  # 虚拟边的数据传输大小为0
         
         # 为指向sink节点的边分配概率（每个end节点到sink的概率为1，因为没有其他选择）
         for node in end_nodes:
             G.add_edge(node, sink_node, 
                       probability=1.0,
-                      data_size=0)  # 虚拟边的数据传输大小为0
+                      data_size=np.random.uniform(0.5*config._d, 1.5*config._d))  # 虚拟边的数据传输大小为0
 
     def _generate_layers(self, num_layers):
         """生成层信息"""
