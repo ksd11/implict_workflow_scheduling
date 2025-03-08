@@ -44,7 +44,7 @@ class LayerEdgeDynamicEnv(gym.Env):
         traces = self.data.traces
 
         # 将所有任务的起始任务添加到任务队列
-        for timestamp, job_name in traces:
+        for timestamp, job_name, gen_pos in traces:
             G :nx.DiGraph = self.data.jobs[job_name]
 
             # is_dag = nx.is_directed_acyclic_graph(G)
@@ -53,12 +53,13 @@ class LayerEdgeDynamicEnv(gym.Env):
             task_name = f"{job_name}_source"
             task_info = self.data.tasks_info[(job_name, task_name)]
 
-            task = Task(job_name=job_name, task_name=task_name, arrival_time=timestamp, data=self.data)
+            task = Task(job_name=job_name, task_name=task_name, arrival_time=timestamp, data=self.data, origin_pos=gen_pos)
 
             self.task_queue.add_task(task)
 
     # 优化状态计算
     def __getState(self):
+        self.__check_and_do_virtual_task()
         # 1. 预计算常用值
         task = self.task_queue.peek()
         if task is None:
@@ -210,10 +211,17 @@ class LayerEdgeDynamicEnv(gym.Env):
                 arrival_time=finish_time, # 上一个任务结束之后才能开始
                 data=self.data,
                 parent_pos=pos,
-                data_size=data_size
+                data_size=data_size,
+                origin_pos=task.origin_pos
             )
             self.task_queue.add_task(new_task)
 
+    # 执行虚拟任务，必须在origin_pos指定的位置执行
+    def __check_and_do_virtual_task(self):
+        task = self.task_queue.peek()
+        while task is not None and (task.task_name.endswith("source") or task.task_name.endswith("sink")):
+            self.step(task.origin_pos)
+            task = self.task_queue.peek()
 
     def step(self, action):
         reward = 0
@@ -232,6 +240,8 @@ class LayerEdgeDynamicEnv(gym.Env):
         
         # 到下一个task
         self.__next(action, finish_time)
+
+        # 每次__getState()的时候就会排除所有虚拟任务
         return self.__getState(), reward, self.__idDone(), False, {"schedule_info": self.schedule_info}
     
     def record_schedule_info(self, task_id, server_id, core_id

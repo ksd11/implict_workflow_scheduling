@@ -14,8 +14,9 @@ class Task:
         parent_pos和data_size确定了数据传输过来的时间：
             data_ready_time = arrival_time + dealy[parent_pos][cur] * data_size
             任务不能在数据准备好之前执行
+        gen_pos: 只针对source和sink的虚拟任务
     '''
-    def __init__(self, job_name: str, task_name :str, arrival_time: float, data: DataGenerator, parent_pos: int = 0, data_size: float = 0):
+    def __init__(self, job_name: str, task_name :str, arrival_time: float, data: DataGenerator, parent_pos: int = 0, data_size: float = 0, origin_pos = -1):
         task_info = data.tasks_info[(job_name,task_name)]
         self.job_name = job_name
         self.task_name = task_name
@@ -25,6 +26,7 @@ class Task:
         self.data = data
         self.parent_pos = parent_pos
         self.data_size = data_size
+        self.origin_pos = origin_pos
 
         self.has_layer = [] # 任务含有Layer的位图
         self.container_id = task_info['container_id']

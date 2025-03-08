@@ -134,13 +134,13 @@ def comparation():
     plot_results(results, request_len_array, "不同算法在不同请求数量下的完成时间对比")
 
 def test0():
-    scheduler_name = "dqn"
+    scheduler_name = "random"
     sched = scheduler_mapping[scheduler_name](**scheduler[scheduler_name])
-    info = one_experiment(env=env, scheduler=sched, seed=0, options={'trace_len': 1000}, verbose=False)
+    info = one_experiment(env=env, scheduler=sched, seed=0, options={'trace_len': 10}, verbose=True)
     print(info)
     
 
 if __name__ == "__main__":
-    comparation()
-    # test0()
+    # comparation()
+    test0()
     
