@@ -8,3 +8,4 @@ test/
 todo.md
 *.png
 results.json
+__result__/

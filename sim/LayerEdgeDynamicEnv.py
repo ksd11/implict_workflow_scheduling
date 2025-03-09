@@ -44,7 +44,7 @@ class LayerEdgeDynamicEnv(gym.Env):
         traces = self.data.traces
 
         # 将所有任务的起始任务添加到任务队列
-        for timestamp, job_name, gen_pos in traces:
+        for idx, (timestamp, job_name, gen_pos) in enumerate(traces):
             G :nx.DiGraph = self.data.jobs[job_name]
 
             # is_dag = nx.is_directed_acyclic_graph(G)
@@ -53,7 +53,7 @@ class LayerEdgeDynamicEnv(gym.Env):
             task_name = f"{job_name}_source"
             task_info = self.data.tasks_info[(job_name, task_name)]
 
-            task = Task(job_name=job_name, task_name=task_name, arrival_time=timestamp, data=self.data, origin_pos=gen_pos)
+            task = Task(job_name=job_name, task_name=task_name, arrival_time=timestamp, data=self.data, origin_pos=gen_pos, global_id=idx)
 
             self.task_queue.add_task(task)
 
@@ -212,7 +212,8 @@ class LayerEdgeDynamicEnv(gym.Env):
                 data=self.data,
                 parent_pos=pos,
                 data_size=data_size,
-                origin_pos=task.origin_pos
+                origin_pos=task.origin_pos,
+                global_id=task.global_id
             )
             self.task_queue.add_task(new_task)
 
@@ -233,7 +234,7 @@ class LayerEdgeDynamicEnv(gym.Env):
 
         reward = -finish_time/1000
         
-        self.record_schedule_info(task_id=task.get_task_id()
+        self.record_schedule_info(global_id=task.global_id, task_id=task.get_task_id()
                 , server_id=action, core_id=-1
                 , arrival_time=task.get_arrival_time()
                 , start_time=start_time, finish_time=finish_time)
@@ -248,9 +249,10 @@ class LayerEdgeDynamicEnv(gym.Env):
         # 每次__getState()的时候就会排除所有虚拟任务
         return self.__getState(), reward, self.__idDone(), False, {"schedule_info": self.schedule_info}
     
-    def record_schedule_info(self, task_id, server_id, core_id
+    def record_schedule_info(self, global_id, task_id, server_id, core_id
                              , arrival_time, start_time, finish_time):
         self.schedule_info[task_id] = {
+            "global_id": global_id, 
             "task_id": task_id,
             "server_id": server_id,
             "core_id": core_id,

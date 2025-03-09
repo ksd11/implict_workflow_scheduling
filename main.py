@@ -4,6 +4,7 @@ from cfg_loader import load
 from pprint import pprint
 import sim
 from schedulers import scheduler_mapping, Scheduler
+import numpy as np
 
 # 防止中文乱码
 import matplotlib.pyplot as plt
@@ -70,11 +71,21 @@ scheduler = {
 
 def report(info:dict, verbose = False):
     makespan = max([info[k]['finish_time'] for k in info])
+    
+    # 请求的结束时间其sink函数的结束时间
+    # all_request_finish_time = {info[k]['global_id']: info[k]['finish_time'] for k in info if info[k]['task_id'][1].endswith("sink")}
+    # all_request_arrival_time = {info[k]['global_id']: info[k]['arrival_time'] for k in info if info[k]['task_id'][1].endswith("source")}
+    # all_request_process_time = {k: all_request_finish_time[k] - all_request_arrival_time[k] for k in all_request_finish_time}
+
     if verbose:
         for k in info:
             print(info[k])
         print("Makespan is: ", makespan)
-    return makespan
+
+    return {
+        'makespan': makespan,
+        # 'all_request_process_time': all_request_process_time
+    }
 
 def one_experiment(env, scheduler: Scheduler, seed = None, options = {'trace_len': 100}, verbose = False):
 
@@ -91,11 +102,11 @@ def one_experiment(env, scheduler: Scheduler, seed = None, options = {'trace_len
 
     env.close()
     # pprint(info)
-    makespan = report(info['schedule_info'], verbose=verbose)
+    statistics = report(info['schedule_info'], verbose=verbose)
     # return reward_sum
     return {
         "reward_sum": reward_sum,
-        "makespan": makespan
+        **statistics
     }
 
 
@@ -187,12 +198,62 @@ def xanadu_different_predeploy_degree():
 def test0():
     scheduler_name = "dep-eft"
     sched = scheduler_mapping[scheduler_name](**scheduler[scheduler_name])
-    info = one_experiment(env=env, scheduler=sched, seed=0, options={'trace_len': 1000}, verbose=False)
+    info = one_experiment(env=env, scheduler=sched, seed=0, options={'trace_len': 20}, verbose=True)
     print(info)
+
+
+def plot_cdf(results: dict):
+    plt.figure(figsize=(10, 6))
     
+    for scheduler_name, finish_times_list in results.items():
+        # 获取完成时间数组
+        finish_times = finish_times_list  # 取第一个实验结果
+        
+        # 计算CDF
+        sorted_data = np.sort(finish_times)
+        p = np.arange(1, len(sorted_data) + 1) / len(sorted_data)
+        
+        # 绘制CDF线
+        plt.plot(sorted_data, p, label=scheduler_name)
+    
+    # 设置图表属性
+    plt.xlabel('完成时间')
+    plt.ylabel('累积概率')
+    plt.title('不同调度策略的请求完成时间CDF对比')
+    plt.grid(True)
+    plt.legend()
+    
+    # 保存图表
+    plt.savefig('cdf.png')
+    plt.close()
+
+    
+# 每种调度器执行1000个请求，然后画出各自的完成时间cdf图
+def cdf(seed = 0):
+    results = {}
+    trace_len = 1000
+    for sched, info in scheduler.items():
+        schedulerCls = scheduler_mapping[sched](**info)
+        info = one_experiment(env=env, scheduler=schedulerCls, seed=seed, options={'trace_len': trace_len})
+        results[sched] = info["all_request_finish_time"]
+        print(f"scheduler: {sched}")
+        print(f"trace_len: {trace_len}")
+        view = info["all_request_finish_time"][:10]
+        print(f"all_request_finish_time: {view}...")
+        print()
+
+    # 保存为JSON文件
+    with open('__result__/cdf.json', 'w') as f:
+        json.dump(results, f, indent=4)
+
+    # pprint(results)
+    plot_cdf(results)
+
 
 if __name__ == "__main__":
     # comparation()
     test0()
     # xanadu_different_predeploy_degree()
+
+    # cdf()
     

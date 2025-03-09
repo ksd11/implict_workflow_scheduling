@@ -168,6 +168,7 @@ class PriorityStorage(Storage):
     def clear(self):
         self.used = 0
         self.buffer.clear()
+        self.heap = []
         self.timestamp = 0
         
     def hit(self, key):
@@ -194,7 +195,7 @@ class PriorityStorage(Storage):
         return None
     
     def cache(self, key, value):
-        item = self.cacheItem(0, self.timestamp, key, value)
+        item = self.cacheItem(1, self.timestamp, key, value)
         self.buffer[key] = item
         heapq.heappush(self.heap, item)
         self.timestamp += 1
