@@ -1,4 +1,4 @@
-from .greedy import GreedyScheduler
+from .dep_down import DepDownScheduler
 import numpy as np
 import networkx as nx
 
@@ -6,7 +6,7 @@ import networkx as nx
 根据MLP路径预部署镜像
 
 '''
-class XanaduScheduler(GreedyScheduler):
+class XanaduScheduler(DepDownScheduler):
     def __init__(self, env, predeploy_degree = 1):
         self.env = env
         self.predeploy_degree = predeploy_degree
@@ -38,5 +38,7 @@ class XanaduScheduler(GreedyScheduler):
 
 
     def schedule(self, obs: list)  -> tuple[int, dict]:
-        download_finish_time = self.parse_state(obs)
-        return download_finish_time.index(min(download_finish_time)), self.after_deploy_hook_func
+        download_time = self.parse(obs)["download_time"]
+        return download_time.index(min(download_time)), self.after_deploy_hook_func
+        # download_finish_time = self.parse_state(obs)
+        # return download_finish_time.index(min(download_finish_time)), self.after_deploy_hook_func

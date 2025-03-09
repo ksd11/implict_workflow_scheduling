@@ -46,7 +46,15 @@ scheduler = {
     "ppo":{
         "config_path": "config/ppo.yaml"
     }, 
-    "greedy": {
+    "dep-down": {
+        "edge_server_num": env.N,
+        "layer_num": env.L
+    }, 
+    "dep-wait": {
+        "edge_server_num": env.N,
+        "layer_num": env.L
+    }, 
+    "dep-eft": {
         "edge_server_num": env.N,
         "layer_num": env.L
     }, 
@@ -54,10 +62,11 @@ scheduler = {
         "edge_server_num": env.N,
         "layer_num": env.L
     },
-    "xanadu": {
-        "env": env,
-        "predeploy_degree": 1
-    }}
+    # "xanadu": {
+    #     "env": env,
+    #     "predeploy_degree": 1
+    # }
+    }
 
 def report(info:dict, verbose = False):
     makespan = max([info[k]['finish_time'] for k in info])
@@ -111,6 +120,7 @@ def plot_results(results: dict, x_values: list, title: str = "算法对比"):
     plt.close()
 
 
+import json
 def comparation():
     results = {}
     request_len_array = [100,200,400,600,800,1000]
@@ -132,10 +142,17 @@ def comparation():
         "dqn": results["dqn"],
         "ppo": results["ppo"],
         "random": results["random"],
-        "greedy": results["greedy"]
+        "dep-down": results["dep-down"],
+        "dep-wait": results["dep-wait"],
+        "dep-eft": results["dep-eft"],
     }
 
+    # 保存为JSON文件
+    with open('results.json', 'w') as f:
+        json.dump(results, f, indent=4)
+
     plot_results(results, request_len_array, "不同算法在不同请求数量下的完成时间对比")
+
 
 def xanadu_different_predeploy_degree():
     results = {}
@@ -175,7 +192,7 @@ def test0():
     
 
 if __name__ == "__main__":
-    # comparation()
+    comparation()
     # test0()
-    xanadu_different_predeploy_degree()
+    # xanadu_different_predeploy_degree()
     

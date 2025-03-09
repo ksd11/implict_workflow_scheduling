@@ -69,7 +69,7 @@ class LayerEdgeDynamicEnv(gym.Env):
         machine_states = np.zeros((self.totoal_server, 4))
         machine_states[:, 0] = [m.cpu for m in self.machines]
         machine_states[:, 1] = [m.storage.remain() for m in self.machines]
-        machine_states[:, 2] = [m.download_finish_time - task.get_arrival_time() for m in self.machines]
+        machine_states[:, 2] = [max(m.download_finish_time - task.get_arrival_time(), 0) for m in self.machines]
         machine_states[:, 3] = [m.getAddLayersSize(task.layer) * m.pull_dealy for m in self.machines]
         
         # 3. 批量更新状态缓冲区
