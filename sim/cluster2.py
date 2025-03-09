@@ -253,6 +253,12 @@ class Machine:
                 core_id = idx
         return core_id, res
     
+    def get_image_ready_time(self, layers):
+        max_download_finish_time = 0
+        for layer in layers:
+            max_download_finish_time = max(max_download_finish_time, self.storage.get_download_finish_time(layer))
+        return max_download_finish_time
+
     def place(self, core_id, start, end):
         # print(f"edge[{self.idx}-{core_id}] occupy: {start}-{end}")
         self.cores[core_id].occupy(start, end)
@@ -266,10 +272,16 @@ class Machine:
 
         # self.tasks.append(task)
         add_layers = self.getAddLayers(task)
-        self.addNewLayers(add_layers)
+        if len(add_layers) == 0:
+            # 镜像层全部命中
+            image_ready_time = self.get_image_ready_time(add_layers)
+        else:
+            # 需要下载部分镜像层
+            self.addNewLayers(timestamp=timestamp, add_layers=add_layers)
+            image_ready_time = self.download_finish_time
 
         # ready_time为数据准备好，并且镜像层也准备好
-        ready_time =ceil2(max(data_ready_time, self.download_finish_time))
+        ready_time =ceil2(max(data_ready_time, image_ready_time))
         
         # 计算Task完成时间
         execute_time = ceil2(task.cpu / self.cpu)
@@ -280,7 +292,9 @@ class Machine:
         return est, est + execute_time
 
     # 添加新的layers，并更新下载完成时间
-    def addNewLayers(self, add_layers):
+    def addNewLayers(self, timestamp, add_layers):
+        # 不能在timestamp之前下载，因为决策是timestamp时做的
+        self.download_finish_time = max(timestamp, self.download_finish_time)
         # 计算Layer下载完成时间
         for layer_id in add_layers:
             self.download_finish_time += self.layer_size[layer_id] * self.pull_dealy
