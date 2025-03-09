@@ -8,14 +8,16 @@ class HeuristicScheduler(Scheduler):
         self.L = layer_num
 
     '''
-        (4 + N) * N  -> (含有的计算资源， 目前存储占用情况， 下载需要等待时间， 需要增量下载的时间, 机器之间通信延迟)
+        N * 4   -> (含有的计算资源， 目前存储占用情况， 下载需要等待时间， 需要增量下载的时间)
+        N * N  -> 机器之间通信延迟
         3     ->  (请求的计算资源， 父任务执行位置， 父任务传输大小)
     '''
     def parse(self, obs):
-        node_features = obs[:-3].reshape((4*self.N, self.N))
+        node_features = obs[:self.N*4].reshape((self.N, 4))
+        node_comm_dealy = obs[self.N*4:-3].reshape(self.N, self.N)
         # adder_size = [node_feature[3] for node_feature in node_features]
         task_cpu = obs[-3]
-        parent_pos = obs[-2]
+        parent_pos = int(obs[-2])
         data_size = obs[-1]
 
         download_time = [node_feature[3] for node_feature in node_features]
@@ -25,7 +27,7 @@ class HeuristicScheduler(Scheduler):
         finish_time = []
         for i in range(self.N):
             image_ready_time = wait_time[i] + download_time[i] # 预估
-            data_ready_time = node_features[parent_pos][4+i] * data_size
+            data_ready_time = node_comm_dealy[parent_pos][i] * data_size
             exec_time = task_cpu / node_features[i][0]
             total_time = max(image_ready_time, data_ready_time) + exec_time
             finish_time.append(total_time)

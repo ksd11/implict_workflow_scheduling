@@ -1,7 +1,7 @@
 import math
 from typing import Tuple
-from collections import OrderedDict
 from data.data_generate import DataGenerator
+from .storage import Storage,FCFSStorage,LRUStorage,PriorityPlusStorage,PriorityStorage
 
 import heapq
 from typing import Any, Optional
@@ -129,83 +129,13 @@ class Core:
         return self.interval.__iter__()
     
 
-class Storage:
-    def __init__(self, size):
-        self.capacity = size  # 缓存容量
-        self.used = 0        # 已使用空间
-        self.cache = OrderedDict()  # {layer_id: (layer_size, download_finish_time)}
-    
-    '''
-        往缓存里添加layer_id表示的缓存块，大小为layer_size
-        1. 若缓存存在,则啥事也没有
-        2. 若缓存不存在,则添加缓存。需要保证缓存总大小不超过size, 若超出，则先驱逐旧的缓存块，再添加新的缓存块。驱逐的算法为LRU
-    '''
-    def add(self, layer_id, layer_size, download_finish_time):
-        # 如果已存在，直接返回
-        if layer_id in self.cache:
-            return
-        
-        # 检查是否需要腾出空间
-        while self.used + layer_size > self.capacity and self.cache:
-            # 移除最久未使用的缓存
-            _, info = self.cache.popitem(last=False)
-            removed_size, _ = info
-            self.used -= removed_size
-            
-        # 如果单个layer太大，则不缓存
-        if layer_size > self.capacity:
-            return
-            
-        # 添加新缓存
-        self.cache[layer_id] = (layer_size, download_finish_time)
-        self.used += layer_size
-    
-    '''
-        判断缓存里是否还有layer_id表示的缓存块
-    '''
-    def contain(self, layer_id):
-        return layer_id in self.cache
-    
-    '''
-        获取层的下载完成时间（用户保证层存在）
-    '''
-    def get_download_finish_time(self, layer_id):
-        return self.cache[layer_id][1]
-    
-    '''
-        标记layer_id对应的缓存块命中一次
-    '''
-    def hit(self, layer_id):
-        if layer_id in self.cache:
-            # 将命中的项移到末尾（最新使用）
-            size = self.cache.pop(layer_id)
-            self.cache[layer_id] = size
-
-    def has_layer(self, L):
-        res = []
-        for i in range(L):
-            if self.contain(i):
-                res.append(1)
-            else:
-                res.append(0)
-        return res
-    
-    def get_all_layers(self):
-        return set(self.cache.keys())
-    
-    def clear(self):
-        self.used = 0
-        self.cache = OrderedDict()
-
-    # 返回剩余空间
-    def remain(self):
-        return self.capacity - self.used
-    
-
 class Machine:
     def __init__(self, idx: int, node_info: dict, data: dict):
         self.cpu = node_info['cpu']
-        self.storage: Storage = Storage(node_info['storage'])
+        # self.storage: Storage = FCFSStorage(node_info['storage'])
+        # self.storage: Storage = PriorityStorage(node_info['storage'])
+        self.storage: Storage = PriorityPlusStorage(node_info['storage'])
+
         self.pull_dealy = node_info['pull_delay']
         self.L = len(data.layers)
         self.core_number = int(node_info['core_number'])
@@ -236,13 +166,6 @@ class Machine:
                 res.append(self.storage.get_download_finish_time(i)-timestamp)
         return res
     
-    # 判断是否还能容纳此任务
-    def isAccommodate(self, task: Task):
-        # if self.total_download_size + self.getAddLayersSize(task) > self.storage:
-        #     return False
-        # TODO. container number的限制如何做？
-        return True
-    
     def findEstByCore(self, start, size):
         res = math.inf
         core_id = -1
@@ -271,7 +194,7 @@ class Machine:
         data_ready_time = timestamp + self.data.delay_matrix[parent_pos][self.idx] * data_size
 
         # self.tasks.append(task)
-        add_layers = self.getAddLayers(task.layer)
+        add_layers = self.getAddLayers(task.layer, hit=True) # 设置hit标记
         if len(add_layers) == 0:
             # 镜像层全部命中
             image_ready_time = self.get_image_ready_time(add_layers)
@@ -303,10 +226,18 @@ class Machine:
             self.total_download_size += self.layer_size[layer_id]
 
 
-    def getAddLayers(self, layers):
+    # hit: 是否要标记使用的容器层
+    def getAddLayers(self, layers, hit = False):
         # 计算Layer下载完成时间
         # layers = task.layer
         add_layers =  layers - self.storage.get_all_layers()
+
+        # 若标记了需要设置命中
+        if hit:
+            hit_layers = layers - add_layers
+            for layer_id in hit_layers:
+                self.storage.hit(layer_id)
+        
         return add_layers
     
     def getAddLayersSize(self, layers):
