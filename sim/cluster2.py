@@ -271,7 +271,7 @@ class Machine:
         data_ready_time = timestamp + self.data.delay_matrix[parent_pos][self.idx] * data_size
 
         # self.tasks.append(task)
-        add_layers = self.getAddLayers(task)
+        add_layers = self.getAddLayers(task.layer)
         if len(add_layers) == 0:
             # 镜像层全部命中
             image_ready_time = self.get_image_ready_time(add_layers)
@@ -303,12 +303,29 @@ class Machine:
             self.total_download_size += self.layer_size[layer_id]
 
 
-    def getAddLayers(self, task: Task):
+    def getAddLayers(self, layers):
         # 计算Layer下载完成时间
-        layers = task.layer
+        # layers = task.layer
         add_layers =  layers - self.storage.get_all_layers()
         return add_layers
     
-    def getAddLayersSize(self, task: Task):
-        add_layers = self.getAddLayers(task)
+    def getAddLayersSize(self, layers):
+        add_layers = self.getAddLayers(layers)
         return sum([self.layer_size[layer] for layer in add_layers])
+
+    # 在时刻timestamp预部署容器(真正部署)
+    def predeploy_container(self, timestamp, container_id):
+        # 获取容器对应的所有容器层
+        layers = set(self.data.containers[container_id])
+        add_layers = self.getAddLayers(layers)
+        self.addNewLayers(timestamp, add_layers)
+
+    # 假如在timestamp需要拉取容器，则拉取完毕的时间 (不是真正的部署，只是预估)
+    def get_ready_time_of_container(self, timestamp, container_id):
+        layers = set(self.data.containers[container_id])
+        add_layers = self.getAddLayers(layers)
+        res = max(timestamp, self.download_finish_time)
+        # 计算Layer下载完成时间
+        for layer_id in add_layers:
+            res += self.layer_size[layer_id] * self.pull_dealy
+        return res

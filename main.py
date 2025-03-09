@@ -53,6 +53,10 @@ scheduler = {
     "random": {
         "edge_server_num": env.N,
         "layer_num": env.L
+    },
+    "xanadu": {
+        "env": env,
+        "predeploy_degree": 1
     }}
 
 def report(info:dict, verbose = False):
@@ -70,8 +74,8 @@ def one_experiment(env, scheduler: Scheduler, seed = None, options = {'trace_len
     done = False
 
     while not done:
-        action ,_state = scheduler.schedule(state)
-        state, reward, terminated, truncated, info = env.step(int(action))
+        action ,_func = scheduler.schedule(state)
+        state, reward, terminated, truncated, info = env.step(int(action), after_deploy_hook_func = _func)
         done = terminated or truncated
         reward_sum += reward
         env.render()
@@ -133,14 +137,45 @@ def comparation():
 
     plot_results(results, request_len_array, "不同算法在不同请求数量下的完成时间对比")
 
+def xanadu_different_predeploy_degree():
+    results = {}
+    request_len_array = [100,200,400,600,800,1000]
+    predeploy_degree = range(1,7)
+    scheduler_info = scheduler["xanadu"]
+
+    for degree in predeploy_degree:
+        sched = f"xanadu-{degree}"
+        scheduler_info["predeploy_degree"] = degree
+
+        schedulerCls = scheduler_mapping["xanadu"](**scheduler_info)
+        results[sched] = []
+        for trace_len in request_len_array:
+            info = one_experiment(env=env, scheduler=schedulerCls, seed=0, options={'trace_len': trace_len})
+            results[sched].append(info["makespan"])
+            print(f"scheduler: {sched}")
+            print(f"trace_len: {trace_len}")
+            print(f"info: {info}")
+            print()
+
+    pprint(results)
+
+    # 使用示例
+    results_dict = {}
+    for degree in predeploy_degree:
+        sched = f"xanadu-{degree}"
+        results_dict[sched] = results[sched]
+
+    plot_results(results_dict, request_len_array, "不同算法在不同请求数量下的完成时间对比")
+
 def test0():
-    scheduler_name = "random"
+    scheduler_name = "xanadu"
     sched = scheduler_mapping[scheduler_name](**scheduler[scheduler_name])
-    info = one_experiment(env=env, scheduler=sched, seed=0, options={'trace_len': 10}, verbose=True)
+    info = one_experiment(env=env, scheduler=sched, seed=0, options={'trace_len': 1000}, verbose=False)
     print(info)
     
 
 if __name__ == "__main__":
     # comparation()
-    test0()
+    # test0()
+    xanadu_different_predeploy_degree()
     

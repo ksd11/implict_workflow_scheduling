@@ -70,7 +70,7 @@ class LayerEdgeDynamicEnv(gym.Env):
         machine_states[:, 0] = [m.cpu for m in self.machines]
         machine_states[:, 1] = [m.storage.remain() for m in self.machines]
         machine_states[:, 2] = [m.download_finish_time - task.get_arrival_time() for m in self.machines]
-        machine_states[:, 3] = [m.getAddLayersSize(task) * m.pull_dealy for m in self.machines]
+        machine_states[:, 3] = [m.getAddLayersSize(task.layer) * m.pull_dealy for m in self.machines]
         
         # 3. 批量更新状态缓冲区
         idx = 0
@@ -223,7 +223,7 @@ class LayerEdgeDynamicEnv(gym.Env):
             self.step(task.origin_pos)
             task = self.task_queue.peek()
 
-    def step(self, action):
+    def step(self, action, after_deploy_hook_func = None):
         reward = 0
         task = self.task_queue.peek()
         if task == None:
@@ -237,6 +237,10 @@ class LayerEdgeDynamicEnv(gym.Env):
                 , server_id=action, core_id=-1
                 , arrival_time=task.get_arrival_time()
                 , start_time=start_time, finish_time=finish_time)
+        
+        # 在转移到下一个任务之前执行的操作，比如预拉取镜像层
+        if after_deploy_hook_func != None:
+            after_deploy_hook_func()
         
         # 到下一个task
         self.__next(action, finish_time)
@@ -274,6 +278,41 @@ class LayerEdgeDynamicEnv(gym.Env):
     # 任务队列里面没任务代表完成了
     def __idDone(self) -> bool:
         return self.task_queue.is_empty()
+    
+    def get_sched_additional_info(self):
+        task = self.task_queue.peek()
+        if task == None:
+            assert False, "Env is done!!"
+        
+        job_name = task.job_name
+        G:nx.DiGraph = self.data.jobs[job_name]
+        
+        # 返回：任务达到时间，任务名，作业名，对应的dag图，任务信息表
+        return task.arrival_time, task.task_name, job_name, G, self.data.tasks_info
+
+    # 选择最早准备好的机器去预部署
+    def predeploy(self, timestamp, container_id):
+        # -1表示virtual container id
+        if container_id == -1:
+            return
+        early_ready_time = math.inf # 最早准备好时间
+        choose_mid = -1             # 选择部署的机器
+        for mid, machine in enumerate(self.machines):
+            ready_time = self.get_ready_time_of_container(mid, timestamp, container_id)
+            if early_ready_time > ready_time:
+                choose_mid = mid
+                early_ready_time = ready_time
+        self.predeploy_container(choose_mid, timestamp, container_id)
+
+    # 预估的部署完成时间
+    def get_ready_time_of_container(self, machine_id, timestamp, container_id):
+        return self.machines[machine_id].get_ready_time_of_container(timestamp, container_id)
+
+    # 预部署容器
+    def predeploy_container(self, machine_id, timestamp, container_id):
+        self.machines[machine_id].predeploy_container(timestamp, container_id)
+
+        
     
 
 
