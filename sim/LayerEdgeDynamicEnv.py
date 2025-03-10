@@ -10,7 +10,7 @@ import networkx as nx
 
 
 class LayerEdgeDynamicEnv(gym.Env):
-    def __init__(self, render_mode="human"):
+    def __init__(self, render_mode="human", need_log = False):
         generator = DataGenerator()
         generator.load("data/workload_data")
         # pprint(generator.getSystemInfo())
@@ -23,6 +23,7 @@ class LayerEdgeDynamicEnv(gym.Env):
         obs_dim = self.totoal_server * (4 + self.totoal_server) + 3
         act_dim = N+1
         self.Len = len(self.data.traces)
+        self.need_log = need_log # 很耗时，统计时才打开
 
         self.observation_space = spaces.Box(
             low=0, high=math.inf, shape=(obs_dim,), dtype=np.float64)
@@ -234,7 +235,10 @@ class LayerEdgeDynamicEnv(gym.Env):
 
         reward = -execution_info["finish_time"]/1000
         
-        self.record_schedule_info(global_id=task.global_id, task_id=task.get_task_id()
+        if self.need_log:
+            self.record_schedule_info(
+                global_id=task.global_id
+                , task_id=task.get_task_id()
                 , server_id=action, core_id=-1
                 , arrival_time=task.get_arrival_time()
                 , **execution_info)

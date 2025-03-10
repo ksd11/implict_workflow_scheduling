@@ -16,15 +16,15 @@ main()
 
 # 性能分析
 # 方法1: 保存到文件
-import cProfile
-# 创建性能分析器
-pr = cProfile.Profile()
-# 运行代码
-pr.enable()
-main()
-pr.disable()
-# 保存结果到文件
-pr.dump_stats('profile.stats')
+# import cProfile
+# # 创建性能分析器
+# pr = cProfile.Profile()
+# # 运行代码
+# pr.enable()
+# main()
+# pr.disable()
+# # 保存结果到文件
+# pr.dump_stats('profile.stats')
 
 # # 方法2: 直接打印结果，按不同指标排序
 # # sort 选项:

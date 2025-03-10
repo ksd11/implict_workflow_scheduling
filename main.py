@@ -39,7 +39,7 @@ def make_parser():
     return parser
 
 # env = sim.LayerEdgeEnv()
-env = sim.LayerEdgeDynamicEnv()
+env = sim.LayerEdgeDynamicEnv(need_log=True)
 scheduler = {
     "dep-down": {
         "edge_server_num": env.N,

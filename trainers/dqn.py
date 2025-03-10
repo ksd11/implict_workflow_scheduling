@@ -46,7 +46,7 @@ class DQN(Trainer):
             dest[key] = source[key]
 
     def train(self):
-        # self.pre_train()
+        self.pre_train()
 
         # # 开始训练
         self.model.learn(total_timesteps=self.train_cfg["total_timesteps"], 
