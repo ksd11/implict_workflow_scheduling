@@ -89,6 +89,11 @@ def report(infos:dict, verbose = False):
     # machines_info解析
     all_machine_download_time = [v["download_finish_time"] for v in machines_info]
     all_machine_download_size = [v["total_download_size"] for v in machines_info]
+    
+    machine_execute_task_num = [0] * len(machines_info)
+    for info in tasks_execution_info:
+        machine_execute_task_num[info['server_id']]+=1
+
     # all_machine_data_tranmission_time = [v["data_transmission_time"] for v in machines_info]
 
     if verbose:
@@ -108,6 +113,8 @@ def report(infos:dict, verbose = False):
         'all_task_wait_for_image': all_task_wait_for_image,
         'all_task_wait_for_data': all_task_wait_for_data,
         'all_task_wait_for_comp': all_task_wait_for_comp,
+
+        'machine_execute_task_num': machine_execute_task_num
     }
 
 def one_experiment(env, scheduler: Scheduler, seed = None, options = {'trace_len': 100}, verbose = False):
@@ -219,11 +226,10 @@ def xanadu_different_predeploy_degree():
     plot_results(results_dict, request_len_array, "不同算法在不同请求数量下的完成时间对比")
 
 def test0():
-    scheduler_name = "ppo"
+    scheduler_name = "dep-down"
     sched = scheduler_mapping[scheduler_name](**scheduler[scheduler_name])
     info = one_experiment(env=env, scheduler=sched, seed=0, options={'trace_len': 600}, verbose=False)
-    # print(info)
-    print(sum(info['all_request_process_time'].values()))
+    # print(sum(info['all_request_process_time'].values()))
 
 
 def plot_cdf(results: dict):
@@ -335,9 +341,61 @@ def all_metric_pic(seed = 0):
 
     # plot_results(results["pending_download_time"], request_len_array, "总等待下载时间对比")
 
+
+def plot_machine_distribution(data: dict, title="任务分布"):
+    """画出各算法在不同机器上的任务分布柱状图"""
+    
+    # 1. 准备数据
+    algorithms = list(data.keys())
+    num_machines = len(list(data.values())[0])  # 机器数量
+    x = np.arange(num_machines)  # 柱状图的x坐标
+    width = 0.15  # 柱子的宽度
+    
+    # 2. 创建图表
+    fig, ax = plt.subplots(figsize=(12, 6))
+    
+    # 3. 画出每个算法的柱子
+    for idx, (algo, values) in enumerate(data.items()):
+        ax.bar(x + idx*width, values, width, label=algo)
+    
+    # 4. 设置图表属性
+    ax.set_ylabel('任务数量')
+    ax.set_xlabel('机器编号')
+    ax.set_title(title)
+    ax.set_xticks(x + 2.5*width)
+    ax.set_xticklabels([f'Machine {i+1}' for i in range(num_machines)])
+    ax.legend()
+    ax.grid(True, linestyle='--', alpha=0.7)
+    
+    # 5. 保存图表
+    plt.savefig('machine_distribution.png')
+    plt.close()
+
+
+def machine_distribution(seed=0):
+    results = {}
+    trace_len = 1000
+    for sched, info in scheduler.items():
+        schedulerCls = scheduler_mapping[sched](**info)
+        info = one_experiment(env=env, scheduler=schedulerCls, seed=seed, options={'trace_len': trace_len})
+        results[sched] = info["machine_execute_task_num"]
+        print(f"scheduler: {sched}")
+        print(f"trace_len: {trace_len}")
+        print(f"machine_execute_task_num: {results[sched]}...")
+        print()
+
+    # 保存为JSON文件
+    # with open('__result__/cdf.json', 'w') as f:
+    #     json.dump(results, f, indent=4)
+
+    # pprint(results)
+    plot_machine_distribution(results)
+
+
 if __name__ == "__main__":
     # comparation()
     # test0()
     # xanadu_different_predeploy_degree()
     # cdf()
-    all_metric_pic()    
+    # all_metric_pic()    
+    machine_distribution()
