@@ -47,8 +47,8 @@ class LayerEdgeDynamicEnv(gym.Env):
         for idx, (timestamp, job_name, gen_pos) in enumerate(traces):
             G :nx.DiGraph = self.data.jobs[job_name]
 
-            # is_dag = nx.is_directed_acyclic_graph(G)
-            # assert is_dag, "bad dag, 因为dag有环"
+            is_dag = nx.is_directed_acyclic_graph(G)
+            assert is_dag, "bad dag, 因为dag有环"
 
             task_name = f"{job_name}_source"
             task_info = self.data.tasks_info[(job_name, task_name)]
@@ -265,11 +265,12 @@ class LayerEdgeDynamicEnv(gym.Env):
         for i in range(self.totoal_server):
             self.schedule_info["machines_info"].append({
                 "download_finish_time": self.machines[i].download_finish_time,
-                "total_download_size": self.machines[i].total_download_size
+                "total_download_size": self.machines[i].total_download_size,
+                "data_transmission_time": self.machines[i].data_transmission_time
             })
 
     def clear_schedule_info(self):
-        self.schedule_info = {"tasks_execution_info": [], "machines_info": []*self.totoal_server}
+        self.schedule_info = {"tasks_execution_info": [], "machines_info": []}
 
     def get_schedule_info(self):
         return self.schedule_info

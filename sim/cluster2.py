@@ -133,9 +133,9 @@ class Core:
 class Machine:
     def __init__(self, idx: int, node_info: dict, data: dict):
         self.cpu = node_info['cpu']
-        # self.storage: Storage = FCFSStorage(node_info['storage'])
+        self.storage: Storage = FCFSStorage(node_info['storage'])
         # self.storage: Storage = PriorityStorage(node_info['storage'])
-        self.storage: Storage = PriorityPlusStorage(node_info['storage'])
+        # self.storage: Storage = PriorityPlusStorage(node_info['storage'])
 
         self.pull_dealy = node_info['pull_delay']
         self.L = len(data.layers)
@@ -147,9 +147,8 @@ class Machine:
 
     def reset(self):
         self.download_finish_time = 0
-        # self.tasks = []
-        # self.task_finish_time = 0
         self.total_download_size = 0
+        self.data_transmission_time = 0 # 数据传输时间
         self.cores = [Core(i) for i in range(self.core_number)]
         self.storage.clear()
 
@@ -192,7 +191,11 @@ class Machine:
         timestamp = task.get_arrival_time()
         parent_pos = task.parent_pos
         data_size = task.data_size
-        data_ready_time = timestamp + self.data.delay_matrix[parent_pos][self.idx] * data_size
+
+        # 数据传输时间
+        data_tranmission = self.data.delay_matrix[parent_pos][self.idx] * data_size
+        data_ready_time = timestamp + data_tranmission
+        self.data_transmission_time += data_tranmission
 
         # self.tasks.append(task)
         add_layers = self.getAddLayers(task.layer, hit=True) # 设置hit标记
@@ -209,10 +212,9 @@ class Machine:
         
         # 计算Task完成时间
         execute_time = ceil2(task.cpu / self.cpu)
-        core_id, est = self.findEstByCore(ready_time, execute_time)
-        self.place(core_id, est, est+execute_time)
-        # print(f"{timestamp:.2f}: executing task at [{est:.2f}-{est+execute_time:.2f}) in edge {self.idx}")
-        # self.task_finish_time = max(self.download_finish_time, self.task_finish_time) + execute_time
+        # core_id, est = self.findEstByCore(ready_time, execute_time)
+        # self.place(core_id, est, est+execute_time)
+        core_id, est = 0, ready_time
         return est, est + execute_time
 
     # 添加新的layers，并更新下载完成时间

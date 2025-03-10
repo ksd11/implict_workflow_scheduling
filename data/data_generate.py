@@ -45,8 +45,8 @@ class Config:
         self._edge_delay = 1         # edge和edge之间数据传输延迟
         self.cloud_delay = 15        # edge和cloud之间数据传输延迟
         self._gamma = 1      # average layer pulling latency, cloud is 0.5
-        self.lo_storage = 10
-        self.hi_storage = 30
+        self.lo_storage = 100
+        self.hi_storage = 300
         self._c = 1          # 单核平均计算能力
         self.core_number = list(range(1,5))
 
@@ -86,7 +86,7 @@ class DataGenerator:
                  , num_containers=config.num_containers
                  , trace_len=config.trace_len
                  , mean_interarrival=config.request_interval
-                 , seed=42, zipf_a = 1.5):
+                 , seed=42, zipf_a = 0):
         """生成所有需要的数据"""
         np.random.seed(seed)
         
@@ -172,7 +172,7 @@ class DataGenerator:
             for task, deps in dependencies.items():
                 for dep in deps:
                     for pred_task in G.nodes():
-                        if pred_task.split('_')[0][-1] == dep:
+                        if pred_task.split('_')[0][1:] == dep:
                             if pred_task not in parent_children:
                                 parent_children[pred_task] = []
                             parent_children[pred_task].append(task)
@@ -247,7 +247,7 @@ class DataGenerator:
         self.containers.append([]) # -1为空，为source和sink指向的容器
 
     
-    def _generate_tasks_info(self, zipf_a = 1.2):
+    def _generate_tasks_info(self, zipf_a = 0):
         """为任务分配容器并生成CPU占用"""
         all_tasks = []
         task_info = {}  # 存储任务的所有信息

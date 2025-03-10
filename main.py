@@ -85,6 +85,7 @@ def report(infos:dict, verbose = False):
     # machines_info解析
     all_machine_download_time = [v["download_finish_time"] for v in machines_info]
     all_machine_download_size = [v["total_download_size"] for v in machines_info]
+    all_machine_data_tranmission_time = [v["data_transmission_time"] for v in machines_info]
 
     if verbose:
         for info in infos:
@@ -96,7 +97,8 @@ def report(infos:dict, verbose = False):
         'all_request_process_time': all_request_process_time,
         'all_machine_download_time': all_machine_download_time,
         'all_machine_download_size': all_machine_download_size,
-        'all_task_waiting_time': all_task_waiting_time
+        'all_task_waiting_time': all_task_waiting_time,
+        'all_machine_data_tranmission_time': all_machine_data_tranmission_time
     }
 
 def one_experiment(env, scheduler: Scheduler, seed = None, options = {'trace_len': 100}, verbose = False):
@@ -210,8 +212,9 @@ def xanadu_different_predeploy_degree():
 def test0():
     scheduler_name = "dep-eft"
     sched = scheduler_mapping[scheduler_name](**scheduler[scheduler_name])
-    info = one_experiment(env=env, scheduler=sched, seed=0, options={'trace_len': 20}, verbose=True)
-    print(info)
+    info = one_experiment(env=env, scheduler=sched, seed=0, options={'trace_len': 600}, verbose=False)
+    # print(info)
+    print(sum(info['all_request_process_time'].values()))
 
 
 def plot_cdf(results: dict):
@@ -272,7 +275,7 @@ def all_metric_pic(seed = 0):
             info = one_experiment(env=env, scheduler=schedulerCls, seed=seed, options={'trace_len': trace_len})
             
             # 总处理时间
-            results["total_request_process_time"][sched].append(sum(info["all_request_process_time"]))
+            results["total_request_process_time"][sched].append(sum(info["all_request_process_time"].values()))
             
             # 总下载时间
             results["total_download_time"][sched].append(sum(info["all_machine_download_time"]))
@@ -285,6 +288,9 @@ def all_metric_pic(seed = 0):
 
             # total down size
             results["total_download_size"][sched].append(sum(info["all_machine_download_size"]))
+
+            # data tranmission time
+            results["total_data_tranmission_time"][sched].append(sum(info["all_machine_data_tranmission_time"]))
             
             print(f"scheduler: {sched}")
             print(f"trace_len: {trace_len}")
@@ -293,6 +299,7 @@ def all_metric_pic(seed = 0):
             # print(f"pending_download_time: {results['pending_download_time'][sched][-1]}")
             print(f"total_request_waiting_time: {results['total_request_waiting_time'][sched][-1]}")
             print(f"total_download_size: {results['total_download_size'][sched][-1]}")
+            print(f"total_data_tranmission_time: {results['total_data_tranmission_time'][sched][-1]}")
             print()
 
     # pprint(results)
@@ -310,10 +317,12 @@ def all_metric_pic(seed = 0):
     
     plot_results(results["total_download_size"], request_len_array, "总下载大小对比", "total_download_size")
 
+    plot_results(results["total_data_tranmission_time"], request_len_array, "总传输时间对比", "total_data_tranmission_time")
+
 
 if __name__ == "__main__":
     # comparation()
-    # test0()
+    test0()
     # xanadu_different_predeploy_degree()
     # cdf()
-    all_metric_pic()    
+    # all_metric_pic()    
