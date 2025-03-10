@@ -251,7 +251,7 @@ class LayerEdgeDynamicEnv(gym.Env):
     
     def record_schedule_info(self, global_id, task_id, server_id, core_id
                              , arrival_time, start_time, finish_time):
-        self.schedule_info[task_id] = {
+        self.schedule_info["tasks_execution_info"].append({
             "global_id": global_id, 
             "task_id": task_id,
             "server_id": server_id,
@@ -259,10 +259,17 @@ class LayerEdgeDynamicEnv(gym.Env):
             "arrival_time": arrival_time,
             "start_time": start_time,
             "finish_time": finish_time
-        }
+        })
+
+        self.schedule_info["machines_info"] = []
+        for i in range(self.totoal_server):
+            self.schedule_info["machines_info"].append({
+                "download_finish_time": self.machines[i].download_finish_time,
+                "total_download_size": self.machines[i].total_download_size
+            })
 
     def clear_schedule_info(self):
-        self.schedule_info = {}
+        self.schedule_info = {"tasks_execution_info": [], "machines_info": []*self.totoal_server}
 
     def get_schedule_info(self):
         return self.schedule_info

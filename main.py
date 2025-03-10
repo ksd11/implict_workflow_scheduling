@@ -69,22 +69,34 @@ scheduler = {
     # }
     }
 
-def report(info:dict, verbose = False):
-    makespan = max([info[k]['finish_time'] for k in info])
+def report(infos:dict, verbose = False):
+    tasks_execution_info = infos["tasks_execution_info"]
+    machines_info = infos["machines_info"]
+
+    makespan = max([info['finish_time'] for info in tasks_execution_info])
     
-    # 请求的结束时间其sink函数的结束时间
-    # all_request_finish_time = {info[k]['global_id']: info[k]['finish_time'] for k in info if info[k]['task_id'][1].endswith("sink")}
-    # all_request_arrival_time = {info[k]['global_id']: info[k]['arrival_time'] for k in info if info[k]['task_id'][1].endswith("source")}
-    # all_request_process_time = {k: all_request_finish_time[k] - all_request_arrival_time[k] for k in all_request_finish_time}
+    # tasks_execution_info 请求的结束时间其sink函数的结束时间
+    all_request_finish_time = {info['global_id']: info['finish_time'] for info in tasks_execution_info if info['task_id'][1].endswith("sink")}
+    all_request_arrival_time = {info['global_id']: info['arrival_time'] for info in tasks_execution_info if info['task_id'][1].endswith("source")}
+    all_request_process_time = {k: all_request_finish_time[k] - all_request_arrival_time[k] for k in all_request_finish_time}
+
+    all_task_waiting_time = [info['start_time']-info['arrival_time'] for info in tasks_execution_info]
+
+    # machines_info解析
+    all_machine_download_time = [v["download_finish_time"] for v in machines_info]
+    all_machine_download_size = [v["total_download_size"] for v in machines_info]
 
     if verbose:
-        for k in info:
-            print(info[k])
+        for info in infos:
+            print(info)
         print("Makespan is: ", makespan)
 
     return {
         'makespan': makespan,
-        # 'all_request_process_time': all_request_process_time
+        'all_request_process_time': all_request_process_time,
+        'all_machine_download_time': all_machine_download_time,
+        'all_machine_download_size': all_machine_download_size,
+        'all_task_waiting_time': all_task_waiting_time
     }
 
 def one_experiment(env, scheduler: Scheduler, seed = None, options = {'trace_len': 100}, verbose = False):
@@ -111,7 +123,7 @@ def one_experiment(env, scheduler: Scheduler, seed = None, options = {'trace_len
 
 
 # 根据task_number变化的折线图
-def plot_results(results: dict, x_values: list, title: str = "算法对比"):
+def plot_results(results: dict, x_values: list, title: str = "算法对比", fig_name = "comparison"):
     plt.figure(figsize=(10, 6))
     
     # 为每个算法画一条线
@@ -126,8 +138,8 @@ def plot_results(results: dict, x_values: list, title: str = "算法对比"):
     plt.legend()
     
     # 保存图表
-    plt.show()
-    plt.savefig('comparison.png')
+    plt.savefig(f'{fig_name}.png')
+    # plt.show()
     plt.close()
 
 
@@ -235,11 +247,11 @@ def cdf(seed = 0):
     for sched, info in scheduler.items():
         schedulerCls = scheduler_mapping[sched](**info)
         info = one_experiment(env=env, scheduler=schedulerCls, seed=seed, options={'trace_len': trace_len})
-        results[sched] = info["all_request_finish_time"]
+        results[sched] = list(info["all_request_process_time"].values())
         print(f"scheduler: {sched}")
         print(f"trace_len: {trace_len}")
-        view = info["all_request_finish_time"][:10]
-        print(f"all_request_finish_time: {view}...")
+        view = results[sched][:10]
+        print(f"all_request_process_time: {view}...")
         print()
 
     # 保存为JSON文件
@@ -249,11 +261,59 @@ def cdf(seed = 0):
     # pprint(results)
     plot_cdf(results)
 
+from collections import defaultdict
+def all_metric_pic(seed = 0):
+    results = defaultdict(lambda: defaultdict(list))
+    # request_len_array = [100,200,400,600,800,1000]
+    request_len_array = [100,200,400,600]
+    for sched, info in scheduler.items():
+        schedulerCls = scheduler_mapping[sched](**info)
+        for trace_len in request_len_array:
+            info = one_experiment(env=env, scheduler=schedulerCls, seed=seed, options={'trace_len': trace_len})
+            
+            # 总处理时间
+            results["total_request_process_time"][sched].append(sum(info["all_request_process_time"]))
+            
+            # 总下载时间
+            results["total_download_time"][sched].append(sum(info["all_machine_download_time"]))
+
+            # pending download time
+            # results["pending_download_time"][sched].append(?)
+
+            # total request waiting time
+            results["total_request_waiting_time"][sched].append(sum(info["all_task_waiting_time"]))
+
+            # total down size
+            results["total_download_size"][sched].append(sum(info["all_machine_download_size"]))
+            
+            print(f"scheduler: {sched}")
+            print(f"trace_len: {trace_len}")
+            print(f"total_request_process_time: {results['total_request_process_time'][sched][-1]}")
+            print(f"total_download_time: {results['total_download_time'][sched][-1]}")
+            # print(f"pending_download_time: {results['pending_download_time'][sched][-1]}")
+            print(f"total_request_waiting_time: {results['total_request_waiting_time'][sched][-1]}")
+            print(f"total_download_size: {results['total_download_size'][sched][-1]}")
+            print()
+
+    # pprint(results)
+    # 保存为JSON文件
+    with open('__result__/all_metric.json', 'w') as f:
+        json.dump(results, f, indent=4)
+
+    plot_results(results["total_request_process_time"], request_len_array, "总处理时间对比", fig_name="total_request_process_time")
+
+    plot_results(results["total_download_time"], request_len_array, "总下载时间对比", "total_download_time")
+    
+    # plot_results(results["pending_download_time"], request_len_array, "总等待下载时间对比")
+    
+    plot_results(results["total_request_waiting_time"], request_len_array, "总等待时间对比", "total_request_waiting_time")
+    
+    plot_results(results["total_download_size"], request_len_array, "总下载大小对比", "total_download_size")
+
 
 if __name__ == "__main__":
     # comparation()
-    test0()
+    # test0()
     # xanadu_different_predeploy_degree()
-
     # cdf()
-    
+    all_metric_pic()    
