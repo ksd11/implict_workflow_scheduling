@@ -148,7 +148,9 @@ class Machine:
     def reset(self):
         self.download_finish_time = 0
         self.total_download_size = 0
-        self.data_transmission_time = 0 # 数据传输时间
+        # self.wait_for_data = 0 
+        # self.wait_for_image = 0 # 等待镜像层传输的总时间
+        # self.wait_for_comp = 0 # 等待计算资源
         self.cores = [Core(i) for i in range(self.core_number)]
         self.storage.clear()
 
@@ -176,6 +178,7 @@ class Machine:
                 core_id = idx
         return core_id, res
     
+    # 获取容器准备好时间
     def get_image_ready_time(self, layers):
         max_download_finish_time = 0
         for layer in layers:
@@ -193,15 +196,13 @@ class Machine:
         data_size = task.data_size
 
         # 数据传输时间
-        data_tranmission = self.data.delay_matrix[parent_pos][self.idx] * data_size
-        data_ready_time = timestamp + data_tranmission
-        self.data_transmission_time += data_tranmission
+        data_ready_time = timestamp + self.data.delay_matrix[parent_pos][self.idx] * data_size
 
         # self.tasks.append(task)
         add_layers = self.getAddLayers(task.layer, hit=True) # 设置hit标记
         if len(add_layers) == 0:
             # 镜像层全部命中
-            image_ready_time = self.get_image_ready_time(add_layers)
+            image_ready_time = self.get_image_ready_time(task.layer)
         else:
             # 需要下载部分镜像层
             self.addNewLayers(timestamp=timestamp, add_layers=add_layers)
@@ -212,10 +213,17 @@ class Machine:
         
         # 计算Task完成时间
         execute_time = ceil2(task.cpu / self.cpu)
-        # core_id, est = self.findEstByCore(ready_time, execute_time)
-        # self.place(core_id, est, est+execute_time)
-        core_id, est = 0, ready_time
-        return est, est + execute_time
+        core_id, est = self.findEstByCore(ready_time, execute_time)
+        self.place(core_id, est, est+execute_time)
+
+        return {
+            "start_time": est,
+            "finish_time": est+execute_time,
+            "wait_for_data": data_ready_time - timestamp,   # 等待数据传输时间
+            "wait_for_image": max(image_ready_time - timestamp, 0), # 等待镜像传输
+            "wait_for_comp": est - ready_time               # 等待计算资源
+        }
+        # return est, est + execute_time, data_ready_time, image_ready_time
 
     # 添加新的layers，并更新下载完成时间
     def addNewLayers(self, timestamp, add_layers):

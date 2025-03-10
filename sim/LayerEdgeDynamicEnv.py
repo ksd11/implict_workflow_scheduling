@@ -47,8 +47,8 @@ class LayerEdgeDynamicEnv(gym.Env):
         for idx, (timestamp, job_name, gen_pos) in enumerate(traces):
             G :nx.DiGraph = self.data.jobs[job_name]
 
-            is_dag = nx.is_directed_acyclic_graph(G)
-            assert is_dag, "bad dag, 因为dag有环"
+            # is_dag = nx.is_directed_acyclic_graph(G)
+            # assert is_dag, "bad dag, 因为dag有环"
 
             task_name = f"{job_name}_source"
             task_info = self.data.tasks_info[(job_name, task_name)]
@@ -230,27 +230,27 @@ class LayerEdgeDynamicEnv(gym.Env):
         if task == None:
             assert False, "Env is done!!"
 
-        start_time, finish_time = self.machines[action].addTask(task)
+        execution_info = self.machines[action].addTask(task)
 
-        reward = -finish_time/1000
+        reward = -execution_info["finish_time"]/1000
         
         self.record_schedule_info(global_id=task.global_id, task_id=task.get_task_id()
                 , server_id=action, core_id=-1
                 , arrival_time=task.get_arrival_time()
-                , start_time=start_time, finish_time=finish_time)
+                , **execution_info)
         
         # 在转移到下一个任务之前执行的操作，比如预拉取镜像层
         if after_deploy_hook_func != None:
             after_deploy_hook_func()
         
         # 到下一个task
-        self.__next(action, finish_time)
+        self.__next(action, execution_info["finish_time"])
 
         # 每次__getState()的时候就会排除所有虚拟任务
         return self.__getState(), reward, self.__idDone(), False, {"schedule_info": self.schedule_info}
     
     def record_schedule_info(self, global_id, task_id, server_id, core_id
-                             , arrival_time, start_time, finish_time):
+                             , arrival_time, start_time, finish_time, wait_for_data, wait_for_image, wait_for_comp):
         self.schedule_info["tasks_execution_info"].append({
             "global_id": global_id, 
             "task_id": task_id,
@@ -258,7 +258,10 @@ class LayerEdgeDynamicEnv(gym.Env):
             "core_id": core_id,
             "arrival_time": arrival_time,
             "start_time": start_time,
-            "finish_time": finish_time
+            "finish_time": finish_time,
+            "wait_for_data": wait_for_data,
+            "wait_for_image": wait_for_image,
+            "wait_for_comp": wait_for_comp
         })
 
         self.schedule_info["machines_info"] = []
@@ -266,7 +269,7 @@ class LayerEdgeDynamicEnv(gym.Env):
             self.schedule_info["machines_info"].append({
                 "download_finish_time": self.machines[i].download_finish_time,
                 "total_download_size": self.machines[i].total_download_size,
-                "data_transmission_time": self.machines[i].data_transmission_time
+                # "data_transmission_time": self.machines[i].data_transmission_time
             })
 
     def clear_schedule_info(self):

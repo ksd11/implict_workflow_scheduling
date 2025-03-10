@@ -45,8 +45,8 @@ class Config:
         self._edge_delay = 1         # edge和edge之间数据传输延迟
         self.cloud_delay = 15        # edge和cloud之间数据传输延迟
         self._gamma = 1      # average layer pulling latency, cloud is 0.5
-        self.lo_storage = 100
-        self.hi_storage = 300
+        self.lo_storage = 10
+        self.hi_storage = 30
         self._c = 1          # 单核平均计算能力
         self.core_number = list(range(1,5))
 

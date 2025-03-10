@@ -45,13 +45,13 @@ class Storage:
         获取层的下载完成时间（用户保证层存在）
     '''
     def get_download_finish_time(self, layer_id):
-        self.get(layer_id)[1]
+        return self.get(layer_id)[1]
 
     '''
         获取层的大小（用户保证层存在）
     '''
     def get_layer_size(self, layer_id):
-        self.get(layer_id)[0]
+        return self.get(layer_id)[0]
 
     '''
         判断缓存里是否还有layer_id表示的缓存块

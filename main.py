@@ -82,10 +82,14 @@ def report(infos:dict, verbose = False):
 
     all_task_waiting_time = [info['start_time']-info['arrival_time'] for info in tasks_execution_info]
 
+    all_task_wait_for_image = [info['wait_for_image'] for info in tasks_execution_info]
+    all_task_wait_for_data = [info['wait_for_data'] for info in tasks_execution_info]
+    all_task_wait_for_comp = [info['wait_for_comp'] for info in tasks_execution_info]
+
     # machines_info解析
     all_machine_download_time = [v["download_finish_time"] for v in machines_info]
     all_machine_download_size = [v["total_download_size"] for v in machines_info]
-    all_machine_data_tranmission_time = [v["data_transmission_time"] for v in machines_info]
+    # all_machine_data_tranmission_time = [v["data_transmission_time"] for v in machines_info]
 
     if verbose:
         for info in infos:
@@ -95,10 +99,15 @@ def report(infos:dict, verbose = False):
     return {
         'makespan': makespan,
         'all_request_process_time': all_request_process_time,
+
         'all_machine_download_time': all_machine_download_time,
         'all_machine_download_size': all_machine_download_size,
+        # 'all_machine_data_tranmission_time': all_machine_data_tranmission_time,
+
         'all_task_waiting_time': all_task_waiting_time,
-        'all_machine_data_tranmission_time': all_machine_data_tranmission_time
+        'all_task_wait_for_image': all_task_wait_for_image,
+        'all_task_wait_for_data': all_task_wait_for_data,
+        'all_task_wait_for_comp': all_task_wait_for_comp,
     }
 
 def one_experiment(env, scheduler: Scheduler, seed = None, options = {'trace_len': 100}, verbose = False):
@@ -210,7 +219,7 @@ def xanadu_different_predeploy_degree():
     plot_results(results_dict, request_len_array, "不同算法在不同请求数量下的完成时间对比")
 
 def test0():
-    scheduler_name = "dep-eft"
+    scheduler_name = "ppo"
     sched = scheduler_mapping[scheduler_name](**scheduler[scheduler_name])
     info = one_experiment(env=env, scheduler=sched, seed=0, options={'trace_len': 600}, verbose=False)
     # print(info)
@@ -280,9 +289,6 @@ def all_metric_pic(seed = 0):
             # 总下载时间
             results["total_download_time"][sched].append(sum(info["all_machine_download_time"]))
 
-            # pending download time
-            # results["pending_download_time"][sched].append(?)
-
             # total request waiting time
             results["total_request_waiting_time"][sched].append(sum(info["all_task_waiting_time"]))
 
@@ -290,7 +296,14 @@ def all_metric_pic(seed = 0):
             results["total_download_size"][sched].append(sum(info["all_machine_download_size"]))
 
             # data tranmission time
-            results["total_data_tranmission_time"][sched].append(sum(info["all_machine_data_tranmission_time"]))
+            # results["total_data_tranmission_time"][sched].append(sum(info["all_machine_data_tranmission_time"]))
+
+            results["total_request_wait_for_image"][sched].append(sum(info["all_task_wait_for_image"]))
+            results["total_request_wait_for_data"][sched].append(sum(info["all_task_wait_for_data"]))
+            results["total_request_wait_for_comp"][sched].append(sum(info["all_task_wait_for_comp"]))
+
+            # pending download time
+            # results["pending_download_time"][sched].append(?)
             
             print(f"scheduler: {sched}")
             print(f"trace_len: {trace_len}")
@@ -299,7 +312,7 @@ def all_metric_pic(seed = 0):
             # print(f"pending_download_time: {results['pending_download_time'][sched][-1]}")
             print(f"total_request_waiting_time: {results['total_request_waiting_time'][sched][-1]}")
             print(f"total_download_size: {results['total_download_size'][sched][-1]}")
-            print(f"total_data_tranmission_time: {results['total_data_tranmission_time'][sched][-1]}")
+            # print(f"total_data_tranmission_time: {results['total_data_tranmission_time'][sched][-1]}")
             print()
 
     # pprint(results)
@@ -311,18 +324,21 @@ def all_metric_pic(seed = 0):
 
     plot_results(results["total_download_time"], request_len_array, "总下载时间对比", "total_download_time")
     
-    # plot_results(results["pending_download_time"], request_len_array, "总等待下载时间对比")
-    
     plot_results(results["total_request_waiting_time"], request_len_array, "总等待时间对比", "total_request_waiting_time")
     
     plot_results(results["total_download_size"], request_len_array, "总下载大小对比", "total_download_size")
 
-    plot_results(results["total_data_tranmission_time"], request_len_array, "总传输时间对比", "total_data_tranmission_time")
+    # plot_results(results["total_data_tranmission_time"], request_len_array, "总传输时间对比", "total_data_tranmission_time")
 
+    plot_results(results["total_request_wait_for_image"], request_len_array, "总等待镜像时间对比", "total_request_wait_for_image")
+    plot_results(results["total_request_wait_for_data"], request_len_array, "总等待数据时间对比", "total_request_wait_for_data")
+    plot_results(results["total_request_wait_for_comp"], request_len_array, "总等待计算时间对比", "total_request_wait_for_comp")
+
+    # plot_results(results["pending_download_time"], request_len_array, "总等待下载时间对比")
 
 if __name__ == "__main__":
     # comparation()
-    test0()
+    # test0()
     # xanadu_different_predeploy_degree()
     # cdf()
-    # all_metric_pic()    
+    all_metric_pic()    
