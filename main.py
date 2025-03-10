@@ -57,12 +57,12 @@ scheduler = {
         "edge_server_num": env.N,
         "layer_num": env.L
     },
-    #  "dqn":{
-    #     "config_path": "config/dqn.yaml"
-    # },
-    # "ppo":{
-    #     "config_path": "config/ppo.yaml"
-    # }, 
+     "dqn":{
+        "config_path": "config/dqn.yaml"
+    },
+    "ppo":{
+        "config_path": "config/ppo.yaml"
+    }, 
     # "xanadu": {
     #     "env": env,
     #     "predeploy_degree": 1
