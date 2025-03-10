@@ -57,12 +57,12 @@ scheduler = {
         "edge_server_num": env.N,
         "layer_num": env.L
     },
-     "dqn":{
-        "config_path": "config/dqn.yaml"
-    },
-    "ppo":{
-        "config_path": "config/ppo.yaml"
-    }, 
+    #  "dqn":{
+    #     "config_path": "config/dqn.yaml"
+    # },
+    # "ppo":{
+    #     "config_path": "config/ppo.yaml"
+    # }, 
     # "xanadu": {
     #     "env": env,
     #     "predeploy_degree": 1
@@ -276,8 +276,7 @@ def cdf(seed = 0):
 from collections import defaultdict
 def all_metric_pic(seed = 0):
     results = defaultdict(lambda: defaultdict(list))
-    # request_len_array = [100,200,400,600,800,1000]
-    request_len_array = [100,200,400,600]
+    request_len_array = [100,200,400,600,800,1000]
     for sched, info in scheduler.items():
         schedulerCls = scheduler_mapping[sched](**info)
         for trace_len in request_len_array:

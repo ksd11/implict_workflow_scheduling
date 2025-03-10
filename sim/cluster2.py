@@ -6,6 +6,8 @@ from .storage import Storage,FCFSStorage,LRUStorage,PriorityPlusStorage,Priority
 import heapq
 from typing import Any, Optional
 
+from .interval import Core
+
 class Task:
     '''
         job_name和task_name唯一确定一个任务
@@ -79,55 +81,38 @@ def ceil2(value):
     return math.ceil(value*100)/100
 
 # 按至少0.01的粒度occupy，否则会有数值问题
-import portion as P
-from typing import List, Tuple
-import heapq
+# import portion as P
+# from typing import List, Tuple
+# import heapq
 
-class Core:
-    def __init__(self, idx):
-        self.idx = idx
-        self.interval = P.closedopen(0, P.inf)
-        self.free_intervals = [(0, P.inf)]  # 最小堆存储空闲区间
+# class Core:
+#     def __init__(self, idx):
+#         self.idx = idx
+#         self.interval = P.closedopen(0, P.inf)
         
-    def occupy(self, start, end):
-        i = P.closedopen(start, end)
-        if not self.interval.contains(i):
-            assert False, "occupy error"
-            
-        self.interval = self.interval - i
-        self._update_free_intervals(start, end)
-    
-    # [start, end)
-    def _update_free_intervals(self, start, end):
-        # 维护最小堆中的空闲区间
-        new_intervals = []
-        while self.free_intervals:
-            s, e = heapq.heappop(self.free_intervals)
-            if e <= start or s >= end:
-                heapq.heappush(new_intervals, (s, e))
-            else:
-                if s < start:
-                    heapq.heappush(new_intervals, (s, start))
-                if e > end:
-                    heapq.heappush(new_intervals, (end, e))
-        self.free_intervals = new_intervals
+#     def occupy(self, start, end, timestamp = None):
+#         i = P.closedopen(start, end)
+#         if not self.interval.contains(i):
+#             assert False, "occupy error"
+#         self.interval = self.interval - i
         
-    def find_est(self, start, size) -> float:
-        # O(log n) 复杂度找到最早可用时间
-        for s, e in self.free_intervals:
-            real_start = max(s, start)
-            if e >= real_start + size:
-                return real_start
-        assert False, "no available slot"
+#     def find_est(self, start, size) -> float:
+#         # 使用最小堆性质，只需检查堆顶
+#         for i in  self.interval:
+#             s,e = i.lower, i.upper
+#             real_start = max(s, start)
+#             if e >= real_start + size:
+#                 return real_start
+#         assert False, "no available slot"
 
-    def __repr__(self):
-        return self.interval.__str__()
+#     def __repr__(self):
+#         return self.interval.__str__()
 
-    def __str__(self):
-        return self.interval.__str__()
+#     def __str__(self):
+#         return self.interval.__str__()
 
-    def __iter__(self):
-        return self.interval.__iter__()
+#     def __iter__(self):
+#         return self.interval.__iter__()
     
 
 class Machine:
@@ -185,9 +170,9 @@ class Machine:
             max_download_finish_time = max(max_download_finish_time, self.storage.get_download_finish_time(layer))
         return max_download_finish_time
 
-    def place(self, core_id, start, end):
+    def place(self, core_id, start, end, timestamp=None):
         # print(f"edge[{self.idx}-{core_id}] occupy: {start}-{end}")
-        self.cores[core_id].occupy(start, end)
+        self.cores[core_id].occupy(start, end, timestamp=timestamp)
    
     def addTask(self, task: Task) -> Tuple[float, float]:
         
@@ -214,7 +199,7 @@ class Machine:
         # 计算Task完成时间
         execute_time = ceil2(task.cpu / self.cpu)
         core_id, est = self.findEstByCore(ready_time, execute_time)
-        self.place(core_id, est, est+execute_time)
+        self.place(core_id, est, est+execute_time, timestamp=timestamp)
 
         return {
             "start_time": est,
