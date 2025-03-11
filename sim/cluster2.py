@@ -118,9 +118,9 @@ def ceil2(value):
 class Machine:
     def __init__(self, idx: int, node_info: dict, data: dict):
         self.cpu = node_info['cpu']
-        self.storage: Storage = FCFSStorage(node_info['storage'])
+        # self.storage: Storage = FCFSStorage(node_info['storage'])
         # self.storage: Storage = PriorityStorage(node_info['storage'])
-        # self.storage: Storage = PriorityPlusStorage(node_info['storage'])
+        self.storage: Storage = PriorityPlusStorage(node_info['storage'])
 
         self.pull_dealy = node_info['pull_delay']
         self.L = len(data.layers)
@@ -221,6 +221,14 @@ class Machine:
             # 记录信息
             self.total_download_size += self.layer_size[layer_id]
 
+    # 获取在storage中存在的layers的最大的下载完成时间
+    def maxExistLayerDownloadTime(self, layers):
+        all_layers = self.storage.get_all_layers()
+        time = 0
+        for layer in layers:
+            if layer in all_layers:
+                time = max(time, self.storage.get_download_finish_time(layer))
+        return time
 
     # hit: 是否要标记使用的容器层
     def getAddLayers(self, layers, hit = False):

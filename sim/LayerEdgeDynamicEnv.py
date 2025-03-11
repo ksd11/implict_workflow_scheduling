@@ -20,7 +20,7 @@ class LayerEdgeDynamicEnv(gym.Env):
         self.L = len(self.data.layers)   # layer的个数
         N,L = self.N, self.L
         # obs_dim = N * (3*L+3) + 4 * N + L + 1
-        obs_dim = self.totoal_server * (4 + self.totoal_server) + 3
+        obs_dim = self.totoal_server * (5 + self.totoal_server) + 3
         act_dim = N+1
         self.Len = len(self.data.traces)
         self.need_log = need_log # 很耗时，统计时才打开
@@ -67,16 +67,17 @@ class LayerEdgeDynamicEnv(gym.Env):
             return self._state_buffer
     
         # 2. 向量化机器状态计算
-        machine_states = np.zeros((self.totoal_server, 4))
+        machine_states = np.zeros((self.totoal_server, 5))
         machine_states[:, 0] = [m.cpu for m in self.machines]
         machine_states[:, 1] = [m.storage.remain() for m in self.machines]
         machine_states[:, 2] = [max(m.download_finish_time - task.get_arrival_time(), 0) for m in self.machines]
         machine_states[:, 3] = [m.getAddLayersSize(task.layer) * m.pull_dealy for m in self.machines]
+        machine_states[:, 4] = [max(0, m.maxExistLayerDownloadTime(task.layer) - task.get_arrival_time()) for m in self.machines]
         
         # 3. 批量更新状态缓冲区
         idx = 0
-        self._state_buffer[idx:idx + self.totoal_server * 4] = machine_states.flatten()
-        idx += self.totoal_server * 4
+        self._state_buffer[idx:idx + self.totoal_server * 5] = machine_states.flatten()
+        idx += self.totoal_server * 5
         self._state_buffer[idx:idx + self.totoal_server * self.totoal_server] = self.data.delay_matrix.flatten()
         idx += self.totoal_server * self.totoal_server
         self._state_buffer[idx:idx + 3] = [task.cpu, task.parent_pos, task.data_size]
@@ -234,6 +235,7 @@ class LayerEdgeDynamicEnv(gym.Env):
         execution_info = self.machines[action].addTask(task)
 
         reward = -execution_info["finish_time"]/1000
+        # reward = -execution_info["finish_time"]
         
         if self.need_log:
             self.record_schedule_info(

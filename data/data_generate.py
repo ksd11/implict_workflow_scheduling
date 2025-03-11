@@ -45,8 +45,8 @@ class Config:
         self._edge_delay = 1         # edge和edge之间数据传输延迟
         self.cloud_delay = 15        # edge和cloud之间数据传输延迟
         self._gamma = 1      # average layer pulling latency, cloud is 0.5
-        self.lo_storage = 10
-        self.hi_storage = 30
+        self.lo_storage = 50
+        self.hi_storage = 100
         self._c = 1          # 单核平均计算能力
         self.core_number = list(range(1,5))
 
@@ -236,11 +236,17 @@ class DataGenerator:
         """生成容器信息"""
         layer_ids = list(range(len(self.layers)))
         self.containers = [0] * num_containers
+
+        # 1. 生成Zipf分布权重
+        alpha = 1.5  # Zipf分布参数，可调整
+        x = np.arange(1, len(layer_ids) + 1)
+        weights = 1 / (x ** alpha)
+        weights = weights / weights.sum()  # 归一化权重
         
         for i in range(num_containers):
             # 随机选择5-20个层
             num_layers = np.random.randint(config.lo_func_layer_number, config.hi_func_layer_number+1)
-            selected_layers = np.random.choice(layer_ids, size=num_layers, replace=False)
+            selected_layers = np.random.choice(layer_ids, size=num_layers, p=weights, replace=False)
             
             self.containers[i] = list(selected_layers)
         

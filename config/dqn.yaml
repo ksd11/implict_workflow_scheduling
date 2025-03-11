@@ -5,9 +5,9 @@ trainer:
   learning_rate: 1e-4
   batch_size: 512
   gamma: 0.9
-  buffer_size: 50000
+  buffer_size: 10000
   learning_starts: 0
-  target_update_interval: 3000
+  target_update_interval: 2000
   verbose: 0 
   tensorboard_log: "./tmp/tensorboard/"
   total_timesteps: 5e6

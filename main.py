@@ -60,9 +60,9 @@ scheduler = {
      "dqn":{
         "config_path": "config/dqn.yaml"
     },
-    "ppo":{
-        "config_path": "config/ppo.yaml"
-    }, 
+    # "ppo":{
+    #     "config_path": "config/ppo.yaml"
+    # }, 
     # "xanadu": {
     #     "env": env,
     #     "predeploy_degree": 1
@@ -397,5 +397,5 @@ if __name__ == "__main__":
     # test0()
     # xanadu_different_predeploy_degree()
     # cdf()
-    # all_metric_pic()    
-    machine_distribution()
+    all_metric_pic()    
+    # machine_distribution(42)
