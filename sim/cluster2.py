@@ -202,6 +202,7 @@ class Machine:
         self.place(core_id, est, est+execute_time, timestamp=timestamp)
 
         return {
+            "arrival_time": timestamp,
             "start_time": est,
             "finish_time": est+execute_time,
             "wait_for_data": data_ready_time - timestamp,   # 等待数据传输时间

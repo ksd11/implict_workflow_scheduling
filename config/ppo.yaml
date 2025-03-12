@@ -2,14 +2,14 @@ agent:
 trainer:
   trainer_cls: 'PPO'
   policy: "MlpPolicy"
-  learning_rate: 1e-5
+  learning_rate: 1e-4
   n_steps: 1024
   batch_size: 8192 # env_size * n_steps
   n_epochs: 16
   policy_kwargs: 
     net_arch: 
-      pi: [256, 256]
-      vf: [256, 256]
+      pi: [256, 128, 64]
+      vf: [256, 128, 32]
     # features_extractor_class: 'LayerDependentExtractor'
     # features_extractor_kwargs: 
     #   'features_dim': 256 
@@ -23,7 +23,7 @@ trainer:
   gamma: 0.99
   verbose: 0 
   tensorboard_log: "./tmp/tensorboard/"
-  total_timesteps: 2e6
+  total_timesteps: 1e6
   progress_bar: True
   device: "cpu"
   # 3. PPO特有参数

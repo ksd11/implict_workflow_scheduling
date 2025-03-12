@@ -58,6 +58,11 @@ class LayerEdgeDynamicEnv(gym.Env):
 
             self.task_queue.add_task(task)
 
+    # - (finish_time - arrival_time)
+    # 优化总的处理时间
+    def reward_for_total_process_time(self, execution_info):
+        return -(execution_info["finish_time"] - execution_info["arrival_time"])
+
     # 优化状态计算
     def __getState(self):
         self.__check_and_do_virtual_task()
@@ -234,15 +239,16 @@ class LayerEdgeDynamicEnv(gym.Env):
 
         execution_info = self.machines[action].addTask(task)
 
-        reward = -execution_info["finish_time"]/1000
-        # reward = -execution_info["finish_time"]
-        
+        # reward = -execution_info["finish_time"]/1000
+
+        # 优化总的处理时间
+        reward = self.reward_for_total_process_time(execution_info)
+
         if self.need_log:
             self.record_schedule_info(
                 global_id=task.global_id
                 , task_id=task.get_task_id()
                 , server_id=action, core_id=-1
-                , arrival_time=task.get_arrival_time()
                 , **execution_info)
         
         # 在转移到下一个任务之前执行的操作，比如预拉取镜像层

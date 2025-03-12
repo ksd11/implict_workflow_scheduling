@@ -41,28 +41,28 @@ def make_parser():
 # env = sim.LayerEdgeEnv()
 env = sim.LayerEdgeDynamicEnv(need_log=True)
 scheduler = {
-    "dep-down": {
-        "edge_server_num": env.N,
-        "layer_num": env.L
-    }, 
-    "dep-wait": {
-        "edge_server_num": env.N,
-        "layer_num": env.L
-    }, 
-    "dep-eft": {
-        "edge_server_num": env.N,
-        "layer_num": env.L
-    }, 
-    "random": {
-        "edge_server_num": env.N,
-        "layer_num": env.L
-    },
+    # "dep-down": {
+    #     "edge_server_num": env.N,
+    #     "layer_num": env.L
+    # }, 
+    # "dep-wait": {
+    #     "edge_server_num": env.N,
+    #     "layer_num": env.L
+    # }, 
+    # "dep-eft": {
+    #     "edge_server_num": env.N,
+    #     "layer_num": env.L
+    # }, 
+    # "random": {
+    #     "edge_server_num": env.N,
+    #     "layer_num": env.L
+    # },
      "dqn":{
         "config_path": "config/dqn.yaml"
     },
-    # "ppo":{
-    #     "config_path": "config/ppo.yaml"
-    # }, 
+    "ppo":{
+        "config_path": "config/ppo.yaml"
+    }, 
     # "xanadu": {
     #     "env": env,
     #     "predeploy_degree": 1
@@ -226,9 +226,9 @@ def xanadu_different_predeploy_degree():
     plot_results(results_dict, request_len_array, "不同算法在不同请求数量下的完成时间对比")
 
 def test0():
-    scheduler_name = "dep-down"
+    scheduler_name = "dep-eft"
     sched = scheduler_mapping[scheduler_name](**scheduler[scheduler_name])
-    info = one_experiment(env=env, scheduler=sched, seed=0, options={'trace_len': 600}, verbose=False)
+    info = one_experiment(env=env, scheduler=sched, seed=0, options={'trace_len': 1000}, verbose=False)
     # print(sum(info['all_request_process_time'].values()))
 
 
@@ -397,5 +397,5 @@ if __name__ == "__main__":
     # test0()
     # xanadu_different_predeploy_degree()
     # cdf()
-    all_metric_pic()    
-    # machine_distribution(42)
+    # all_metric_pic()    
+    machine_distribution()
