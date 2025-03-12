@@ -45,14 +45,14 @@ scheduler = {
     #     "edge_server_num": env.N,
     #     "layer_num": env.L
     # }, 
-    # "dep-wait": {
-    #     "edge_server_num": env.N,
-    #     "layer_num": env.L
-    # }, 
-    # "dep-eft": {
-    #     "edge_server_num": env.N,
-    #     "layer_num": env.L
-    # }, 
+    "dep-wait": {
+        "edge_server_num": env.N,
+        "layer_num": env.L
+    }, 
+    "dep-eft": {
+        "edge_server_num": env.N,
+        "layer_num": env.L
+    }, 
     # "random": {
     #     "edge_server_num": env.N,
     #     "layer_num": env.L
@@ -141,12 +141,15 @@ def one_experiment(env, scheduler: Scheduler, seed = None, options = {'trace_len
 
 
 # 根据task_number变化的折线图
-def plot_results(results: dict, x_values: list, title: str = "算法对比", fig_name = "comparison"):
+def plot_results(results: dict, x_values: list, title: str = "算法对比", fig_name = "comparison", algos = ["ppo","dqn", "dep-wait", "dep-eft"]):
     plt.figure(figsize=(10, 6))
+
+    if algos is None:
+        algos = list(results.keys())
     
     # 为每个算法画一条线
-    for algo_name, values in results.items():
-        plt.plot(x_values, values, marker='o', label=algo_name)
+    for algo_name in algos:
+        plt.plot(x_values, results[algo_name], marker='o', label=algo_name)
     
     # 设置图表属性
     plt.title(title)
@@ -280,50 +283,57 @@ def cdf(seed = 0):
     plot_cdf(results)
 
 from collections import defaultdict
-def all_metric_pic(seed = 0):
-    results = defaultdict(lambda: defaultdict(list))
-    request_len_array = [100,200,400,600,800,1000]
-    for sched, info in scheduler.items():
-        schedulerCls = scheduler_mapping[sched](**info)
-        for trace_len in request_len_array:
-            info = one_experiment(env=env, scheduler=schedulerCls, seed=seed, options={'trace_len': trace_len})
-            
-            # 总处理时间
-            results["total_request_process_time"][sched].append(sum(info["all_request_process_time"].values()))
-            
-            # 总下载时间
-            results["total_download_time"][sched].append(sum(info["all_machine_download_time"]))
+def all_metric_pic(seed = 0, trait = False):
+    request_len_array = [100,200,400,600,800,1000,1500,2000]
+    if trait:
+        results = defaultdict(lambda: defaultdict(list))
+        for sched, info in scheduler.items():
+            schedulerCls = scheduler_mapping[sched](**info)
+            for trace_len in request_len_array:
+                info = one_experiment(env=env, scheduler=schedulerCls, seed=seed, options={'trace_len': trace_len})
+                
+                # 总处理时间
+                results["total_request_process_time"][sched].append(sum(info["all_request_process_time"].values()))
+                
+                # 总下载时间
+                results["total_download_time"][sched].append(sum(info["all_machine_download_time"]))
 
-            # total request waiting time
-            results["total_request_waiting_time"][sched].append(sum(info["all_task_waiting_time"]))
+                # total request waiting time
+                results["total_request_waiting_time"][sched].append(sum(info["all_task_waiting_time"]))
 
-            # total down size
-            results["total_download_size"][sched].append(sum(info["all_machine_download_size"]))
+                # total down size
+                results["total_download_size"][sched].append(sum(info["all_machine_download_size"]))
 
-            # data tranmission time
-            # results["total_data_tranmission_time"][sched].append(sum(info["all_machine_data_tranmission_time"]))
+                # data tranmission time
+                # results["total_data_tranmission_time"][sched].append(sum(info["all_machine_data_tranmission_time"]))
 
-            results["total_request_wait_for_image"][sched].append(sum(info["all_task_wait_for_image"]))
-            results["total_request_wait_for_data"][sched].append(sum(info["all_task_wait_for_data"]))
-            results["total_request_wait_for_comp"][sched].append(sum(info["all_task_wait_for_comp"]))
+                results["total_request_wait_for_image"][sched].append(sum(info["all_task_wait_for_image"]))
+                results["total_request_wait_for_data"][sched].append(sum(info["all_task_wait_for_data"]))
+                results["total_request_wait_for_comp"][sched].append(sum(info["all_task_wait_for_comp"]))
 
-            # pending download time
-            # results["pending_download_time"][sched].append(?)
-            
-            print(f"scheduler: {sched}")
-            print(f"trace_len: {trace_len}")
-            print(f"total_request_process_time: {results['total_request_process_time'][sched][-1]}")
-            print(f"total_download_time: {results['total_download_time'][sched][-1]}")
-            # print(f"pending_download_time: {results['pending_download_time'][sched][-1]}")
-            print(f"total_request_waiting_time: {results['total_request_waiting_time'][sched][-1]}")
-            print(f"total_download_size: {results['total_download_size'][sched][-1]}")
-            # print(f"total_data_tranmission_time: {results['total_data_tranmission_time'][sched][-1]}")
-            print()
+                # pending download time
+                # results["pending_download_time"][sched].append(?)
+                
+                print(f"scheduler: {sched}")
+                print(f"trace_len: {trace_len}")
+                print(f"total_request_process_time: {results['total_request_process_time'][sched][-1]}")
+                print(f"total_download_time: {results['total_download_time'][sched][-1]}")
+                # print(f"pending_download_time: {results['pending_download_time'][sched][-1]}")
+                print(f"total_request_waiting_time: {results['total_request_waiting_time'][sched][-1]}")
+                print(f"total_download_size: {results['total_download_size'][sched][-1]}")
+                # print(f"total_data_tranmission_time: {results['total_data_tranmission_time'][sched][-1]}")
+                print()
 
-    # pprint(results)
-    # 保存为JSON文件
-    with open('__result__/all_metric.json', 'w') as f:
-        json.dump(results, f, indent=4)
+        # pprint(results)
+        # 保存为JSON文件
+        with open('__result__/all_metric.json', 'w') as f:
+            json.dump(results, f, indent=4)
+
+    else:
+        with open('__result__/all_metric.json', 'r') as f:
+            results = json.load(f)
+            results
+
 
     plot_results(results["total_request_process_time"], request_len_array, "总处理时间对比", fig_name="total_request_process_time")
 
@@ -397,5 +407,5 @@ if __name__ == "__main__":
     # test0()
     # xanadu_different_predeploy_degree()
     # cdf()
-    # all_metric_pic()    
-    machine_distribution()
+    all_metric_pic()    
+    # machine_distribution()
