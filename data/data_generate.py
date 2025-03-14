@@ -65,7 +65,7 @@ class Config:
         self.num_edge_server = 5
         self.num_layers = 1000
         self.num_containers = 500
-        self.trace_len = 1000
+        self.trace_len = 2000
 
 # 创建全局配置对象
 config = Config()

@@ -12,6 +12,18 @@ font_name = "simhei"
 plt.rcParams['font.family']= font_name # 指定字体，实际上相当于修改 matplotlibrc 文件　只不过这样做是暂时的　下次失效
 plt.rcParams['axes.unicode_minus']=False # 正确显示负号，防止变成方框
 
+# 1. 全局字体大小设置
+plt.rcParams.update({
+    'font.size': 16,              # 基础字体大小
+    'axes.labelsize': 16,         # 坐标轴标签字体大小
+    'axes.titlesize': 16,         # 标题字体大小
+    'xtick.labelsize': 14,        # x轴刻度标签字体大小
+    'ytick.labelsize': 14,        # y轴刻度标签字体大小
+    'legend.fontsize': 16,        # 图例字体大小
+    'figure.titlesize': 18        # 图表标题字体大小
+})
+    
+
 def make_parser():
     parser = ArgumentParser(
         description=__doc__, formatter_class=ArgumentDefaultsHelpFormatter
@@ -69,6 +81,24 @@ scheduler = {
     # }
     }
 
+colors = {
+        'random': '#2ca02c',   # 绿色
+        'dep-down': '#1f77b4', # 蓝色
+        'dep-eft': '#9467bd',  # 紫色
+        'dep-wait': '#8c564b',  # 棕色
+        'dqn': '#ff7f0e',      # 橙色
+        'ppo': '#d62728',      # 红色
+    }
+
+markers = {
+    'dqn': 'o',      # 圆形
+    'ppo': 's',      # 方形
+    'random': '^',   # 上三角
+    'dep-down': 'D', # 菱形
+    'dep-eft': 'v',  # 下三角
+    'dep-wait': 'p'  # 五角星
+}
+
 def report(infos:dict, verbose = False):
     tasks_execution_info = infos["tasks_execution_info"]
     machines_info = infos["machines_info"]
@@ -81,6 +111,8 @@ def report(infos:dict, verbose = False):
     all_request_process_time = {k: all_request_finish_time[k] - all_request_arrival_time[k] for k in all_request_finish_time}
 
     all_task_waiting_time = [info['start_time']-info['arrival_time'] for info in tasks_execution_info]
+
+    all_task_execution_time = [info['finish_time'] - info['start_time'] for info in tasks_execution_info]
 
     all_task_wait_for_image = [info['wait_for_image'] for info in tasks_execution_info]
     all_task_wait_for_data = [info['wait_for_data'] for info in tasks_execution_info]
@@ -104,6 +136,7 @@ def report(infos:dict, verbose = False):
     return {
         'makespan': makespan,
         'all_request_process_time': all_request_process_time,
+        'all_task_execution_time': all_task_execution_time,
 
         'all_machine_download_time': all_machine_download_time,
         'all_machine_download_size': all_machine_download_size,
@@ -141,28 +174,61 @@ def one_experiment(env, scheduler: Scheduler, seed = None, options = {'trace_len
 
 
 # 根据task_number变化的折线图
-def plot_results(results: dict, x_values: list, title: str = "算法对比", fig_name = "comparison", algos = ["ppo","dqn", "dep-wait", "dep-eft"]):
-    plt.figure(figsize=(10, 6))
+def plot_results(results: dict, x_values: list, x_label: str = "请求数量", y_label="完成时间",fig_name = "comparison", algos = ["ppo","dqn", "dep-wait", "dep-eft", "random", "dep-down"], threshold: float = 100000, legend_pos = "best"):
+    plt.figure(figsize=(8, 6))
 
     if algos is None:
         algos = list(results.keys())
-    
-    # 为每个算法画一条线
-    for algo_name in algos:
-        plt.plot(x_values, results[algo_name], marker='o', label=algo_name)
-    
-    # 设置图表属性
-    plt.title(title)
-    plt.xlabel('请求数量')
-    plt.ylabel('完成时间')
-    plt.grid(True)
-    plt.legend()
-    
-    # 保存图表
-    plt.savefig(f'{fig_name}.png')
-    # plt.show()
-    plt.close()
 
+    x_outliers = {}
+
+    for algo_name in algos:
+        values = results[algo_name]
+        y = np.array(values)
+        x = np.array(x_values)
+        
+        over_threshold = y > threshold
+        normal_points = ~over_threshold
+        
+        color = colors.get(algo_name, '#1f77b4')
+        line = plt.plot(x[normal_points], y[normal_points], 
+                       marker=markers.get(algo_name, 'o'),
+                       color=color,
+                       label=algo_name)[0]
+        
+        if any(over_threshold):
+            for xi, yi in zip(x[over_threshold], y[over_threshold]):
+                # 计算垂直偏移
+                if xi not in x_outliers:
+                    x_outliers[xi] = 0
+                y_offset = x_outliers[xi] * (-10000)  # 向下偏移
+                x_outliers[xi] += 1
+                
+                # 绘制偏移后的点
+                plt.scatter(xi, threshold + y_offset,
+                          marker=markers.get(algo_name, 'o'),
+                          s=100,
+                          color=color)
+                
+                # 标注也相应偏移
+                plt.annotate(f'{int(yi)}', 
+                           (xi, threshold + y_offset),
+                           xytext=(0, -20),
+                           textcoords='offset points',
+                           ha='right',
+                           va='center',
+                           fontsize=12,
+                           color=color)
+    
+    # plt.title(title)
+    plt.xlabel(x_label)
+    plt.ylabel(y_label)
+    plt.grid(True)
+    plt.legend(loc=legend_pos)
+    
+    plt.savefig(fig_name+".pdf", bbox_inches='tight', dpi=300)
+    plt.close()
+    
 
 import json
 def comparation():
@@ -235,10 +301,11 @@ def test0():
     # print(sum(info['all_request_process_time'].values()))
 
 
-def plot_cdf(results: dict):
-    plt.figure(figsize=(10, 6))
+def plot_cdf(results: dict, algos = ["ppo","dqn", "dep-wait", "dep-eft"]):
+    plt.figure(figsize=(8, 6))
     
-    for scheduler_name, finish_times_list in results.items():
+    for scheduler_name in algos:
+        finish_times_list = results[scheduler_name]
         # 获取完成时间数组
         finish_times = finish_times_list  # 取第一个实验结果
         
@@ -247,7 +314,7 @@ def plot_cdf(results: dict):
         p = np.arange(1, len(sorted_data) + 1) / len(sorted_data)
         
         # 绘制CDF线
-        plt.plot(sorted_data, p, label=scheduler_name)
+        plt.plot(sorted_data, p, label=scheduler_name, color=colors[scheduler_name])
     
     # 设置图表属性
     plt.xlabel('完成时间')
@@ -257,33 +324,37 @@ def plot_cdf(results: dict):
     plt.legend()
     
     # 保存图表
-    plt.savefig('cdf.png')
+    plt.savefig('cdf.pdf')
     plt.close()
 
     
 # 每种调度器执行1000个请求，然后画出各自的完成时间cdf图
-def cdf(seed = 0):
-    results = {}
-    trace_len = 1000
-    for sched, info in scheduler.items():
-        schedulerCls = scheduler_mapping[sched](**info)
-        info = one_experiment(env=env, scheduler=schedulerCls, seed=seed, options={'trace_len': trace_len})
-        results[sched] = list(info["all_request_process_time"].values())
-        print(f"scheduler: {sched}")
-        print(f"trace_len: {trace_len}")
-        view = results[sched][:10]
-        print(f"all_request_process_time: {view}...")
-        print()
+def cdf(seed = 0, trait=False):
+    if trait:
+        results = {}
+        trace_len = 4000
+        for sched, info in scheduler.items():
+            schedulerCls = scheduler_mapping[sched](**info)
+            info = one_experiment(env=env, scheduler=schedulerCls, seed=seed, options={'trace_len': trace_len})
+            results[sched] = list(info["all_request_process_time"].values())
+            print(f"scheduler: {sched}")
+            print(f"trace_len: {trace_len}")
+            view = results[sched][:10]
+            print(f"all_request_process_time: {view}...")
+            print()
 
-    # 保存为JSON文件
-    with open('__result__/cdf.json', 'w') as f:
-        json.dump(results, f, indent=4)
+        # 保存为JSON文件
+        with open('__result__/cdf.json', 'w') as f:
+            json.dump(results, f, indent=4)
+    else:
+        with open('__result__/cdf.json', 'r') as f:
+            results = json.load(f)
 
     # pprint(results)
     plot_cdf(results)
 
 from collections import defaultdict
-def all_metric_pic(seed = 0, trait = True):
+def all_metric_pic(seed = 0, trait = False):
     # request_len_array = [100,200,400,600,800,1000,1500,2000]
     request_len_array = [500,1000,1500,2000,2500,3000,3500,4000]
     if trait:
@@ -295,6 +366,9 @@ def all_metric_pic(seed = 0, trait = True):
                 
                 # 总处理时间
                 results["total_request_process_time"][sched].append(sum(info["all_request_process_time"].values()))
+
+                # 总执行时间
+                results["all_task_execution_time"][sched].append(sum(info["all_task_execution_time"]))
                 
                 # 总下载时间
                 results["total_download_time"][sched].append(sum(info["all_machine_download_time"]))
@@ -336,24 +410,26 @@ def all_metric_pic(seed = 0, trait = True):
             results
 
 
-    plot_results(results["total_request_process_time"], request_len_array, "总处理时间对比", fig_name="total_request_process_time")
+    plot_results(results["total_request_process_time"], request_len_array, y_label="总处理时间", fig_name="total_request_process_time")
 
-    plot_results(results["total_download_time"], request_len_array, "总下载时间对比", "total_download_time")
+    plot_results(results["all_task_execution_time"], request_len_array, y_label="总计算时间", fig_name="all_task_execution_time")
+
+    plot_results(results["total_download_time"], request_len_array,  y_label="总下载时间", fig_name="total_download_time")
     
-    plot_results(results["total_request_waiting_time"], request_len_array, "总等待时间对比", "total_request_waiting_time")
+    plot_results(results["total_request_waiting_time"], request_len_array, y_label="总等待时间", fig_name="total_request_waiting_time", legend_pos="center left")
     
-    plot_results(results["total_download_size"], request_len_array, "总下载大小对比", "total_download_size")
+    plot_results(results["total_download_size"], request_len_array, y_label="总下载大小", fig_name="total_download_size")
 
     # plot_results(results["total_data_tranmission_time"], request_len_array, "总传输时间对比", "total_data_tranmission_time")
 
-    plot_results(results["total_request_wait_for_image"], request_len_array, "总等待镜像时间对比", "total_request_wait_for_image")
-    plot_results(results["total_request_wait_for_data"], request_len_array, "总等待数据时间对比", "total_request_wait_for_data")
-    plot_results(results["total_request_wait_for_comp"], request_len_array, "总等待计算时间对比", "total_request_wait_for_comp")
+    plot_results(results["total_request_wait_for_image"], request_len_array, y_label="总等待镜像时间", fig_name="total_request_wait_for_image", legend_pos="center left",algos = ["ppo","dqn", "dep-wait", "dep-eft"])
+    plot_results(results["total_request_wait_for_data"], request_len_array, y_label="总等待数据时间", fig_name="total_request_wait_for_data",algos = ["ppo","dqn", "dep-wait", "dep-eft"])
+    plot_results(results["total_request_wait_for_comp"], request_len_array, y_label="总等待计算时间", fig_name="total_request_wait_for_comp",legend_pos="center left",algos = ["ppo","dqn", "dep-wait", "dep-eft"])
 
     # plot_results(results["pending_download_time"], request_len_array, "总等待下载时间对比")
 
 
-def plot_machine_distribution(data: dict, title="任务分布"):
+def plot_machine_distribution(data: dict, title="机器分布"):
     """画出各算法在不同机器上的任务分布柱状图"""
     
     # 1. 准备数据
@@ -363,14 +439,14 @@ def plot_machine_distribution(data: dict, title="任务分布"):
     width = 0.15  # 柱子的宽度
     
     # 2. 创建图表
-    fig, ax = plt.subplots(figsize=(12, 6))
+    fig, ax = plt.subplots(figsize=(8, 6))
     
     # 3. 画出每个算法的柱子
     for idx, (algo, values) in enumerate(data.items()):
-        ax.bar(x + idx*width, values, width, label=algo)
+        ax.bar(x + idx*width, values, width, label=algo, color=colors.get(algo, '#1f77b4'))
     
     # 4. 设置图表属性
-    ax.set_ylabel('任务数量')
+    ax.set_ylabel('函数数量')
     ax.set_xlabel('机器编号')
     ax.set_title(title)
     ax.set_xticks(x + 2.5*width)
@@ -379,25 +455,30 @@ def plot_machine_distribution(data: dict, title="任务分布"):
     ax.grid(True, linestyle='--', alpha=0.7)
     
     # 5. 保存图表
-    plt.savefig('machine_distribution.png')
+    plt.savefig('machine_distribution.pdf')
     plt.close()
 
 
-def machine_distribution(seed=0):
-    results = {}
-    trace_len = 1000
-    for sched, info in scheduler.items():
-        schedulerCls = scheduler_mapping[sched](**info)
-        info = one_experiment(env=env, scheduler=schedulerCls, seed=seed, options={'trace_len': trace_len})
-        results[sched] = info["machine_execute_task_num"]
-        print(f"scheduler: {sched}")
-        print(f"trace_len: {trace_len}")
-        print(f"machine_execute_task_num: {results[sched]}...")
-        print()
+def machine_distribution(seed=0, trait=False):
+    if trait:
+        results = {}
+        trace_len = 4000
+        for sched, info in scheduler.items():
+            schedulerCls = scheduler_mapping[sched](**info)
+            info = one_experiment(env=env, scheduler=schedulerCls, seed=seed, options={'trace_len': trace_len})
+            results[sched] = info["machine_execute_task_num"]
+            print(f"scheduler: {sched}")
+            print(f"trace_len: {trace_len}")
+            print(f"machine_execute_task_num: {results[sched]}...")
+            print()
 
-    # 保存为JSON文件
-    # with open('__result__/cdf.json', 'w') as f:
-    #     json.dump(results, f, indent=4)
+        # 保存为JSON文件
+        with open('__result__/machine_distribution.json', 'w') as f:
+            json.dump(results, f, indent=4)
+
+    else:
+        with open('__result__/machine_distribution.json', 'r') as f:
+            results = json.load(f)
 
     # pprint(results)
     plot_machine_distribution(results)
