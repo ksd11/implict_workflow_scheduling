@@ -41,10 +41,10 @@ def make_parser():
 # env = sim.LayerEdgeEnv()
 env = sim.LayerEdgeDynamicEnv(need_log=True)
 scheduler = {
-    # "dep-down": {
-    #     "edge_server_num": env.N,
-    #     "layer_num": env.L
-    # }, 
+    "dep-down": {
+        "edge_server_num": env.N,
+        "layer_num": env.L
+    }, 
     "dep-wait": {
         "edge_server_num": env.N,
         "layer_num": env.L
@@ -53,10 +53,10 @@ scheduler = {
         "edge_server_num": env.N,
         "layer_num": env.L
     }, 
-    # "random": {
-    #     "edge_server_num": env.N,
-    #     "layer_num": env.L
-    # },
+    "random": {
+        "edge_server_num": env.N,
+        "layer_num": env.L
+    },
      "dqn":{
         "config_path": "config/dqn.yaml"
     },
@@ -283,8 +283,9 @@ def cdf(seed = 0):
     plot_cdf(results)
 
 from collections import defaultdict
-def all_metric_pic(seed = 0, trait = False):
-    request_len_array = [100,200,400,600,800,1000,1500,2000]
+def all_metric_pic(seed = 0, trait = True):
+    # request_len_array = [100,200,400,600,800,1000,1500,2000]
+    request_len_array = [500,1000,1500,2000,2500,3000,3500,4000]
     if trait:
         results = defaultdict(lambda: defaultdict(list))
         for sched, info in scheduler.items():

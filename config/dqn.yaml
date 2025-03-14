@@ -2,12 +2,12 @@ agent:
 trainer:
   trainer_cls: 'DQN'
   policy: "MlpPolicy"
-  learning_rate: 1e-4
+  learning_rate: 1e-3
   batch_size: 512
-  gamma: 0.9
-  buffer_size: 10000
+  gamma: 0.95
+  buffer_size: 20000
   learning_starts: 0
-  target_update_interval: 2000
+  target_update_interval: 3000
   verbose: 0 
   tensorboard_log: "./tmp/tensorboard/"
   total_timesteps: 2e6
