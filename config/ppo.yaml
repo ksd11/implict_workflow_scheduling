@@ -1,6 +1,7 @@
 agent:
 trainer:
   trainer_cls: 'PPO'
+  special: 'predeploy-1'
   policy: "MlpPolicy"
   learning_rate: 3e-4
   n_steps: 1024
@@ -23,7 +24,7 @@ trainer:
   gamma: 0.95
   verbose: 0 
   tensorboard_log: "./tmp/tensorboard/"
-  total_timesteps: 1e7
+  total_timesteps: 2e5
   progress_bar: True
   device: "cpu"
   # 3. PPO特有参数

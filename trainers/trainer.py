@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Any
 from stable_baselines3.common.evaluation import evaluate_policy
-from sim.LayerEdgeEnv import LayerEdgeEnv
+from sim.LayerEdgeDynamicEnv import LayerEdgeDynamicEnv
 from stable_baselines3.common.monitor import Monitor
 from stable_baselines3.common.vec_env import DummyVecEnv, SubprocVecEnv
 from .network.layer_dependent_dqn import LayerDependentExtractor
@@ -47,8 +47,8 @@ class Trainer(ABC):
     # 根据env_cfg创建env环境
     def make_env(self, env_cfg):
         def get_env():
-            # env = LayerEdgeEnv()
-            env = gym.make(**env_cfg)
+            env = LayerEdgeDynamicEnv(is_predeploy=True, predeploy_degree=1)
+            # env = gym.make(**env_cfg)
             env = Monitor(env)  # 添加Monitor包装器
             return env
         # self.env = Monitor(gym.make(**env_cfg))
@@ -117,7 +117,10 @@ class Trainer(ABC):
     
     # 获取最终模型保存位置
     def get_model_path(self):
-        return "./model/"+self.train_cfg["trainer_cls"]+"/"+ self.env_cfg["id"] +".pkl"
+        if "special" in self.train_cfg:
+            return "./model/"+self.train_cfg["trainer_cls"]+"/"+ self.train_cfg["special"] + "/"+ self.env_cfg["id"] +".pkl"
+        else:
+            return "./model/"+self.train_cfg["trainer_cls"]+"/"+ self.env_cfg["id"] +".pkl"
     
     # 获取最好结果保存路径
     def get_best_model_path(self):

@@ -10,7 +10,7 @@ import networkx as nx
 
 
 class LayerEdgeDynamicEnv(gym.Env):
-    def __init__(self, render_mode="human", need_log = False, storage_type: Type[Storage] = PriorityPlusStorage, predeploy: bool = False, predeploy_degree: int = 1):
+    def __init__(self, render_mode="human", need_log = False, storage_type: Type[Storage] = PriorityPlusStorage, is_predeploy: bool = False, predeploy_degree: int = 1):
         generator = DataGenerator()
         generator.load("data/workload_data")
         # pprint(generator.getSystemInfo())
@@ -25,7 +25,7 @@ class LayerEdgeDynamicEnv(gym.Env):
         self.Len = len(self.data.traces)
         self.need_log = need_log # 很耗时，统计时才打开
 
-        self.predeploy = predeploy # 环境是否开启预部署
+        self.is_predeploy = is_predeploy # 环境是否开启预部署
         self.predeploy_degree = predeploy_degree
 
         self.observation_space = spaces.Box(
@@ -256,7 +256,11 @@ class LayerEdgeDynamicEnv(gym.Env):
         
         # 在转移到下一个任务之前执行的操作，比如预拉取镜像层
         if after_deploy_hook_func != None:
+            # 有自定义操作
             after_deploy_hook_func()
+        elif self.is_predeploy:
+            # 环境开启了预部署
+            self.__predeploy(self.predeploy_degree)
         
         # 到下一个task
         self.__next(action, execution_info["finish_time"])
@@ -339,6 +343,29 @@ class LayerEdgeDynamicEnv(gym.Env):
     # 预部署容器
     def predeploy_container(self, machine_id, timestamp, container_id):
         self.machines[machine_id].predeploy_container(timestamp, container_id)
+
+    # 环境自己的预部署函数
+    def __predeploy(self, predeploy_degree):
+        timestamp, task_name, job_name, G, tasks_info = self.get_sched_additional_info()
+
+        # 选择最有可能执行的函数预部署
+        task_list:list[str] = []
+
+        while len(task_list) < predeploy_degree:
+            successors = list(G.successors(task_name))
+            if len(successors) == 0:
+                break
+            probs = np.array([G[task_name][succ].get('probability', 1.0) 
+                        for succ in successors])
+            chosen_succ = successors[probs.argmax()]
+            task_list.append(chosen_succ)
+            task_name = chosen_succ
+
+        # 从任务列表获取所有对应的容器
+        container_list = [tasks_info[(job_name, tn)]["container_id"] for tn in task_list]
+        # 预部署容器
+        for container_id in container_list:
+            self.predeploy(timestamp, container_id)
 
         
     

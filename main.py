@@ -601,25 +601,25 @@ def plot_predeploy_comparison(results: dict, x_values: list):
     plt.figure(figsize=(10, 6))
     
     # 为不同存储策略设置颜色和标记
-    storage_colors = {
-        # 'fcfs': '#1f77b4',     # 蓝色
-        # 'lru': '#ff7f0e',      # 橙色
-        'ppo-predeploy': '#2ca02c',# 绿色
-        'ppo': '#d62728'   # 红色
-    }
+    colors = [
+        '#1f77b4',     # 蓝色
+        '#ff7f0e',     # 橙色
+        '#2ca02c',     # 绿色
+        '#d62728'      # 红色
+    ]
     
-    storage_markers = {
-        # 'fcfs': 'o',      # 圆形
-        # 'lru': 's',       # 方形
-        'ppo-predeploy': '^', # 三角形
-        'ppo': 'D'   # 菱形
-    }
+    markers = [
+        'o',      # 圆形
+        's',       # 方形
+        '^', # 三角形
+        'D'   # 菱形
+    ]
     
     # 画出每个存储策略的曲线
-    for name, values in results.items():
+    for i, (name, values) in enumerate(results.items()):
         plt.plot(x_values, values,
-                marker=storage_markers.get(name, 'o'),
-                color=storage_colors.get(name, '#1f77b4'),
+                marker=markers[i],
+                color=colors[i],
                 label=name.upper(),
                 linewidth=2,
                 markersize=8)
@@ -634,30 +634,28 @@ def plot_predeploy_comparison(results: dict, x_values: list):
     plt.close()
 
 def predeploy_test(seed=0, trait = False):
-    scheduler_infos = {
-        "ppo-predeploy": {
-            "config_path": "config/ppo.yaml",
-            "env": env,
-            "predeploy_degree": 1
-        },
-        "ppo": {
-            "config_path": "config/ppo.yaml",
-        }}
+
+    sched = "dep-eft"
+    envs = {
+        sched+"-0": sim.LayerEdgeDynamicEnv(need_log=True, is_predeploy=False),
+        sched+"-1": sim.LayerEdgeDynamicEnv(need_log=True, predeploy_degree=1),
+        sched+"-2": sim.LayerEdgeDynamicEnv(need_log=True, is_predeploy=True, predeploy_degree=2)
+    }
     
     request_len_array = [500,1000,1500,2000,2500,3000,3500,4000]
 
     if trait:
         results = defaultdict(lambda: defaultdict(list))
-        for sched,params in scheduler_infos.items():
-            schedulerCls = scheduler_mapping[sched](**params)
+        schedulerCls = scheduler_mapping[sched](**scheduler[sched])
+        for name, env in envs.items():
             for trace_len in request_len_array:
                 info = one_experiment(env=env, scheduler=schedulerCls, seed=seed, options={'trace_len': trace_len})
 
-                results["total_request_process_time"][sched].append(sum(info["all_request_process_time"].values()))
+                results["total_request_process_time"][name].append(sum(info["all_request_process_time"].values()))
 
-                print(f"sched: {sched}")
+                print(f"env: {name}")
                 print(f"trace_len: {trace_len}")
-                print(f"total_request_process_time: {results['total_request_process_time'][sched][-1]}")
+                print(f"total_request_process_time: {results['total_request_process_time'][name][-1]}")
                 print()
 
                 # 保存为JSON文件
