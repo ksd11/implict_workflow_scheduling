@@ -5,6 +5,7 @@ from .xanadu import XanaduScheduler
 from .dep_down import DepDownScheduler
 from .dep_wait import DepWaitScheduler
 from .dep_eft import DepEFTScheduler
+from .trainable_predeploy import TrainablePredeployScheduler
 
 scheduler_mapping = {
     "dqn": TrainableScheduler,
@@ -14,4 +15,5 @@ scheduler_mapping = {
     "dep-down": DepDownScheduler,
     "dep-wait": DepWaitScheduler,
     "dep-eft": DepEFTScheduler,
+    "ppo-predeploy": TrainablePredeployScheduler
 }

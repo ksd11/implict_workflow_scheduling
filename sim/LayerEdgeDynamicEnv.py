@@ -10,7 +10,7 @@ import networkx as nx
 
 
 class LayerEdgeDynamicEnv(gym.Env):
-    def __init__(self, render_mode="human", need_log = False, storage_type: Type[Storage] = PriorityPlusStorage):
+    def __init__(self, render_mode="human", need_log = False, storage_type: Type[Storage] = PriorityPlusStorage, predeploy: bool = False, predeploy_degree: int = 1):
         generator = DataGenerator()
         generator.load("data/workload_data")
         # pprint(generator.getSystemInfo())
@@ -24,6 +24,9 @@ class LayerEdgeDynamicEnv(gym.Env):
         act_dim = N+1
         self.Len = len(self.data.traces)
         self.need_log = need_log # 很耗时，统计时才打开
+
+        self.predeploy = predeploy # 环境是否开启预部署
+        self.predeploy_degree = predeploy_degree
 
         self.observation_space = spaces.Box(
             low=0, high=math.inf, shape=(obs_dim,), dtype=np.float64)
