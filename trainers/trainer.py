@@ -12,7 +12,7 @@ CfgType = dict[str, Any]
 from stable_baselines3.common.callbacks import EvalCallback, BaseCallback,StopTrainingOnNoModelImprovement
 
 
-from stable_baselines3.common.vec_env import DummyVecEnv, SubprocVecEnv
+from stable_baselines3.common.vec_env import DummyVecEnv, SubprocVecEnv, VecNormalize
 import torch
 import numpy as np
 
@@ -53,6 +53,12 @@ class Trainer(ABC):
             return env
         # self.env = Monitor(gym.make(**env_cfg))
         # return get_env()
+        # return VecNormalize(SubprocVecEnv([get_env for _ in range(8)], start_method='fork'), 
+        #         norm_obs=True,        # 归一化观察空间
+        #         norm_reward=True,     # 归一化奖励
+        #         clip_obs=1000.,         # 裁剪观察值范围)
+        #         clip_reward=1000.,
+        # )
         return SubprocVecEnv([get_env for _ in range(8)], start_method='fork')
         # return DummyVecEnv([get_env for _ in range(8)])
 
