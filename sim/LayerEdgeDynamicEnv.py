@@ -10,7 +10,7 @@ import networkx as nx
 
 
 class LayerEdgeDynamicEnv(gym.Env):
-    def __init__(self, render_mode="human", need_log = False):
+    def __init__(self, render_mode="human", need_log = False, storage_type: Type[Storage] = PriorityPlusStorage):
         generator = DataGenerator()
         generator.load("data/workload_data")
         # pprint(generator.getSystemInfo())
@@ -32,7 +32,7 @@ class LayerEdgeDynamicEnv(gym.Env):
 
         self.machines: list[Machine] = []
         for idx, node_info in enumerate(self.data.nodes):
-            self.machines.append(Machine(idx, node_info, self.data))
+            self.machines.append(Machine(idx, node_info, self.data, StorageCls=storage_type))
         
         # self.task_queue = TaskQueue()
         # self.__add_task_from_trace()

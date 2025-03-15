@@ -152,12 +152,13 @@ class CacheItem:
 
 
 class PriorityStorage(Storage):
-    def __init__(self, size):
+    def __init__(self, size, gamma = 0.95):
         super().__init__(size)
         self.buffer = {}           # key -> CacheItem
         self.heap = []            # 最小堆，存储CacheItem
         self.timestamp = 0
         self.cacheItem = CacheItem
+        self.gamma = gamma # 折扣系数
     
     def contain(self, key):
         return key in self.buffer
@@ -176,7 +177,7 @@ class PriorityStorage(Storage):
             item = self.buffer[key]
             # 创建新项并更新
             new_item = self.cacheItem(
-                priority=item.priority + 1,
+                priority=item.priority*self.gamma + 1,
                 timestamp=self.timestamp,
                 key=key,
                 value=item.value
@@ -226,8 +227,8 @@ class CacheItemPlus:
         return self.timestamp < other.timestamp
 
 class PriorityPlusStorage(PriorityStorage):
-    def __init__(self, size):
-        super(PriorityPlusStorage, self).__init__(size)
+    def __init__(self, size, gamma = 0.95):
+        super(PriorityPlusStorage, self).__init__(size, gamma)
         self.cacheItem = CacheItemPlus
 
 

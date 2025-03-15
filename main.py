@@ -6,6 +6,7 @@ import sim
 from schedulers import scheduler_mapping, Scheduler
 import numpy as np
 import pandas as pd
+from sim.storage import FCFSStorage, LRUStorage, PriorityStorage, PriorityPlusStorage
 
 # 防止中文乱码
 import matplotlib.pyplot as plt
@@ -331,7 +332,7 @@ def plot_cdf(results: dict, algos = ["ppo","dqn", "dep-wait", "dep-eft"]):
 
     
 # 每种调度器执行1000个请求，然后画出各自的完成时间cdf图
-def cdf(seed = 0, trait=False):
+def cdf(seed = 0, trait=True):
     if trait:
         results = {}
         trace_len = 4000
@@ -356,7 +357,7 @@ def cdf(seed = 0, trait=False):
     plot_cdf(results)
 
 from collections import defaultdict
-def all_metric_pic(seed = 0, trait = False):
+def all_metric_pic(seed = 0, trait = True):
     # request_len_array = [100,200,400,600,800,1000,1500,2000]
     request_len_array = [500,1000,1500,2000,2500,3000,3500,4000]
     if trait:
@@ -498,37 +499,112 @@ def smooth(scalars, weight):  # weight是平滑因子
 
 def loss_pic():
     
-    df = pd.read_csv("__result__/ppo_loss.csv")
-    results = dict(zip(df['Step'], df['Value']))
+    ppo_df = pd.read_csv("__result__/ppo_loss.csv")
+    dqn_df = pd.read_csv("__result__/dqn_loss.csv")
     
-    # 1. 准备数据
-    steps = list(results.keys())
-    rewards = list(results.values())
+    # 3. 画PPO曲线
+    plt.plot(ppo_df['Step'], ppo_df['Value'], 
+            color='#ff7f0e',
+            label='PPO',
+            linewidth=1)
+   
     
-    # 2. 设置图表样式
-    plt.figure(figsize=(8, 6))
-
-    # 原始数据
-    plt.plot(steps, rewards, 
+    # 4. 画DQN曲线
+    plt.plot(dqn_df['Step'], dqn_df['Value'],
             color='#1f77b4',
-            linewidth=2)
+            label='DQN',
+            linewidth=1)
     
     # 5. 设置图表属性
     plt.xlabel('训练步数')
     plt.ylabel('奖励')
     # plt.title('训练过程中的奖励变化')
     plt.grid(True, linestyle='--', alpha=0.7)
-    # plt.legend(loc='best')
+    plt.legend(loc='best')
     
     plt.savefig('loss.pdf', dpi=300, bbox_inches='tight')
     plt.close()
+
+def plot_storage_comparison(results: dict, x_values: list):
+    plt.figure(figsize=(10, 6))
+    
+    # 为不同存储策略设置颜色和标记
+    storage_colors = {
+        'fcfs': '#1f77b4',     # 蓝色
+        'lru': '#ff7f0e',      # 橙色
+        'popularity': '#2ca02c',# 绿色
+        'priority': '#d62728'   # 红色
+    }
+    
+    storage_markers = {
+        'fcfs': 'o',      # 圆形
+        'lru': 's',       # 方形
+        'popularity': '^', # 三角形
+        'priority': 'D'   # 菱形
+    }
+    
+    # 画出每个存储策略的曲线
+    for storage_name, values in results.items():
+        plt.plot(x_values, values,
+                marker=storage_markers.get(storage_name, 'o'),
+                color=storage_colors.get(storage_name, '#1f77b4'),
+                label=storage_name.upper(),
+                linewidth=2,
+                markersize=8)
+    
+    plt.xlabel('请求数量')
+    plt.ylabel('总处理时间')
+    plt.title('不同存储策略的性能对比')
+    plt.grid(True, linestyle='--', alpha=0.7)
+    plt.legend()
+    
+    plt.savefig('storage_comparison.pdf', bbox_inches='tight')
+    plt.close()
+
+
+def different_expel_strategy_test(seed=0, trait = False):
+    storageCls = {"fcfs": FCFSStorage, "lru":LRUStorage, "popularity": PriorityStorage, "priority": PriorityPlusStorage}
+    
+    sched = "ppo"
+    params = scheduler["ppo"]
+    request_len_array = [500,1000,1500,2000,2500,3000,3500,4000]
+
+    if trait:
+        schedulerCls = scheduler_mapping[sched](**params)
+        results = defaultdict(lambda: defaultdict(list))
+        for name, storageCls in storageCls.items():
+            for trace_len in request_len_array:
+                env = sim.LayerEdgeDynamicEnv(need_log=True, storage_type=storageCls)
+                info = one_experiment(env=env, scheduler=schedulerCls, seed=seed, options={'trace_len': trace_len})
+
+                results["total_request_process_time"][name].append(sum(info["all_request_process_time"].values()))
+
+                print(f"storage: {name}")
+                print(f"sched: {sched}")
+                print(f"trace_len: {trace_len}")
+                print(f"total_request_process_time: {results['total_request_process_time'][name][-1]}")
+                print()
+
+                # 保存为JSON文件
+                with open('__result__/different_expel_strategy.json', 'w') as f:
+                    json.dump(results, f, indent=4)
+
+    else:
+        with open('__result__/different_expel_strategy.json', 'r') as f:
+            results = json.load(f)
+
+    # print(results)
+    plot_storage_comparison(results["total_request_process_time"], request_len_array)
 
 
 if __name__ == "__main__":
     # comparation()
     # test0()
     # xanadu_different_predeploy_degree()
-    all_metric_pic()    
-    # cdf()
-    # machine_distribution()
+
+    # all_metric_pic(trait=False)    
+    # cdf(trait=False)
+    # machine_distribution(trait=False)
     # loss_pic()
+
+    different_expel_strategy_test(trait=True)

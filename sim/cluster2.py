@@ -7,6 +7,7 @@ import heapq
 from typing import Any, Optional
 
 from .interval import Core
+from typing import Type
 
 class Task:
     '''
@@ -116,11 +117,12 @@ def ceil2(value):
     
 
 class Machine:
-    def __init__(self, idx: int, node_info: dict, data: dict):
+    def __init__(self, idx: int, node_info: dict, data: dict, StorageCls: Type[Storage]):
         self.cpu = node_info['cpu']
         # self.storage: Storage = FCFSStorage(node_info['storage'])
         # self.storage: Storage = PriorityStorage(node_info['storage'])
-        self.storage: Storage = PriorityPlusStorage(node_info['storage'])
+        # self.storage: Storage = PriorityPlusStorage(node_info['storage'])
+        self.storage: Storage = StorageCls(node_info['storage'])
 
         self.pull_dealy = node_info['pull_delay']
         self.L = len(data.layers)
