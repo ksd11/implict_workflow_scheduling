@@ -8,7 +8,8 @@ class TrainableScheduler:
     def __init__(self, config_path: str):
         cfg = load(config_path)
         trainer: Trainer = make_trainer(cfg)
-        path = model_path(cfg['trainer']['trainer_cls'], cfg['env']['id'])
+        path = trainer.get_model_path()
+        # path = model_path(cfg['trainer']['trainer_cls'], cfg['env']['id'])
         # path = trainer.get_best_model_path() + "/best_model.zip"
         self.model = trainer.load(path, device=cfg['trainer']['device']).get_model()
 

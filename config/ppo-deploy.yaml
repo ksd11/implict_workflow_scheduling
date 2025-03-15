@@ -1,6 +1,7 @@
 agent:
 trainer:
   trainer_cls: 'PPO'
+  special: 'predeploy-1'
   policy: "MlpPolicy"
   learning_rate: 3e-4
   n_steps: 1024

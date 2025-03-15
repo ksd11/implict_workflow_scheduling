@@ -1,6 +1,7 @@
 agent:
 trainer:
   trainer_cls: 'DQN'
+  special: 'predeploy-1'
   policy: "MlpPolicy"
   learning_rate: 1e-4
   batch_size: 512

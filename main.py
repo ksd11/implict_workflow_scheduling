@@ -634,20 +634,32 @@ def plot_predeploy_comparison(results: dict, x_values: list):
     plt.close()
 
 def predeploy_test(seed=0, trait = False):
-
-    sched = "dep-eft"
-    envs = {
-        sched+"-0": sim.LayerEdgeDynamicEnv(need_log=True, is_predeploy=False),
-        sched+"-1": sim.LayerEdgeDynamicEnv(need_log=True, predeploy_degree=1),
-        sched+"-2": sim.LayerEdgeDynamicEnv(need_log=True, is_predeploy=True, predeploy_degree=2)
-    }
     
-    request_len_array = [500,1000,1500,2000,2500,3000,3500,4000]
+    # request_len_array = [500,1000,1500,2000,2500,3000,3500,4000]
+    request_len_array = [1000, 2000, 3000]
 
     if trait:
         results = defaultdict(lambda: defaultdict(list))
-        schedulerCls = scheduler_mapping[sched](**scheduler[sched])
-        for name, env in envs.items():
+        # sched = "dep-eft"
+        # schedulerCls = scheduler_mapping[sched](**scheduler[sched])
+        # envs = {
+        #     sched+"-0": (sim.LayerEdgeDynamicEnv(need_log=True, is_predeploy=False), schedulerCls),
+
+        #     sched+"-1": (sim.LayerEdgeDynamicEnv(need_log=True, predeploy_degree=1), schedulerCls),
+            
+            # sched+"-2": (sim.LayerEdgeDynamicEnv(need_log=True, is_predeploy=True, predeploy_degree=2), schedulerCls)
+        # }
+
+        sched = "dqn"
+        dqn1 = scheduler_mapping["dqn"](config_path="config/dqn.yaml")
+        dqn2 = scheduler_mapping["dqn"](config_path="config/dqn-deploy.yaml")
+        envs = {
+            sched+"-0": (sim.LayerEdgeDynamicEnv(need_log=True, is_predeploy=False), dqn1),
+
+            sched+"-1": (sim.LayerEdgeDynamicEnv(need_log=True, is_predeploy=True, predeploy_degree=1), dqn2),
+        }
+
+        for name, (env, schedulerCls) in envs.items():
             for trace_len in request_len_array:
                 info = one_experiment(env=env, scheduler=schedulerCls, seed=seed, options={'trace_len': trace_len})
 
