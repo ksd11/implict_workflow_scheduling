@@ -224,7 +224,8 @@ def plot_results(results: dict, x_values: list, x_label: str = "请求数量", y
     # plt.title(title)
     plt.xlabel(x_label)
     plt.ylabel(y_label)
-    plt.grid(True)
+    # plt.grid(True)
+    plt.grid(True, linestyle='--', alpha=0.7)
     plt.legend(loc=legend_pos)
     
     plt.savefig(fig_name+".pdf", bbox_inches='tight', dpi=300)
@@ -321,7 +322,7 @@ def plot_cdf(results: dict, algos = ["ppo","dqn", "dep-wait", "dep-eft"]):
     plt.xlabel('完成时间')
     plt.ylabel('累积概率')
     plt.title('不同调度策略的请求完成时间CDF对比')
-    plt.grid(True)
+    plt.grid(True, linestyle='--', alpha=0.7)
     plt.legend()
     
     # 保存图表
@@ -355,7 +356,7 @@ def cdf(seed = 0, trait=False):
     plot_cdf(results)
 
 from collections import defaultdict
-def all_metric_pic(seed = 0, trait = True):
+def all_metric_pic(seed = 0, trait = False):
     # request_len_array = [100,200,400,600,800,1000,1500,2000]
     request_len_array = [500,1000,1500,2000,2500,3000,3500,4000]
     if trait:
@@ -460,7 +461,7 @@ def plot_machine_distribution(data: dict, title="机器分布"):
     plt.close()
 
 
-def machine_distribution(seed=0, trait=False):
+def machine_distribution(seed=0, trait=True):
     if trait:
         results = {}
         trace_len = 4000
@@ -527,7 +528,7 @@ if __name__ == "__main__":
     # comparation()
     # test0()
     # xanadu_different_predeploy_degree()
+    all_metric_pic()    
     # cdf()
-    # all_metric_pic()    
     # machine_distribution()
-    loss_pic()
+    # loss_pic()

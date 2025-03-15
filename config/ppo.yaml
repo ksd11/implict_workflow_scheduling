@@ -23,7 +23,7 @@ trainer:
   gamma: 0.95
   verbose: 0 
   tensorboard_log: "./tmp/tensorboard/"
-  total_timesteps: 2e6
+  total_timesteps: 1e7
   progress_bar: True
   device: "cpu"
   # 3. PPO特有参数

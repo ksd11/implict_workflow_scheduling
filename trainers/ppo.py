@@ -45,7 +45,7 @@ class PPO(Trainer):
         ]
         # train_cfg["policy"] = CustomNetwork
         # 1. 创建学习率衰减函数
-        initial_lr = train_cfg.get("learning_rate", 3e-4)
+        initial_lr = train_cfg.get("learning_rate", 1e-3)
         end_lr = initial_lr * 0.1  # 最终学习率为初始值的10%
         
         # 线性衰减
