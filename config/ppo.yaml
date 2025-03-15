@@ -2,14 +2,14 @@ agent:
 trainer:
   trainer_cls: 'PPO'
   policy: "MlpPolicy"
-  learning_rate: 1e-4
-  n_steps: 1024
-  batch_size: 8192 # env_size * n_steps
-  n_epochs: 16
+  learning_rate: 3e-4
+  n_steps: 2048
+  batch_size: 16384 # env_size * n_steps
+  n_epochs: 8
   policy_kwargs: 
     net_arch: 
-      pi: [256, 256]
-      vf: [256, 256]
+      pi: [512, 256, 128]
+      vf: [512, 256, 128]
     # features_extractor_class: 'LayerDependentExtractor'
     # features_extractor_kwargs: 
     #   'features_dim': 256 
@@ -27,9 +27,9 @@ trainer:
   progress_bar: True
   device: "cpu"
   # 3. PPO特有参数
-  # clip_range: 0.2        # 限制策略更新步长
+  clip_range: 0.5        # 限制策略更新步长
+  ent_coef: 0.01        # 提高探索度
   # gae_lambda: 0.95       # GAE参数
-  # ent_coef: 0.01        # 提高探索度
   # vf_coef: 0.5          # 值函数系数
   # max_grad_norm: 0.5    # 梯度裁剪
   # target_kl: 0.01       # KL散度限制

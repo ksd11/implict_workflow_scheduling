@@ -5,6 +5,7 @@ from pprint import pprint
 import sim
 from schedulers import scheduler_mapping, Scheduler
 import numpy as np
+import pandas as pd
 
 # 防止中文乱码
 import matplotlib.pyplot as plt
@@ -354,7 +355,7 @@ def cdf(seed = 0, trait=False):
     plot_cdf(results)
 
 from collections import defaultdict
-def all_metric_pic(seed = 0, trait = False):
+def all_metric_pic(seed = 0, trait = True):
     # request_len_array = [100,200,400,600,800,1000,1500,2000]
     request_len_array = [500,1000,1500,2000,2500,3000,3500,4000]
     if trait:
@@ -484,10 +485,49 @@ def machine_distribution(seed=0, trait=False):
     plot_machine_distribution(results)
 
 
+# Tensorboard的平滑算法
+def smooth(scalars, weight):  # weight是平滑因子
+    last = scalars[0]
+    smoothed = []
+    for point in scalars:
+        smoothed_val = last * weight + (1 - weight) * point
+        smoothed.append(smoothed_val)
+        last = smoothed_val
+    return smoothed
+
+def loss_pic():
+    
+    df = pd.read_csv("__result__/ppo_loss.csv")
+    results = dict(zip(df['Step'], df['Value']))
+    
+    # 1. 准备数据
+    steps = list(results.keys())
+    rewards = list(results.values())
+    
+    # 2. 设置图表样式
+    plt.figure(figsize=(8, 6))
+
+    # 原始数据
+    plt.plot(steps, rewards, 
+            color='#1f77b4',
+            linewidth=2)
+    
+    # 5. 设置图表属性
+    plt.xlabel('训练步数')
+    plt.ylabel('奖励')
+    # plt.title('训练过程中的奖励变化')
+    plt.grid(True, linestyle='--', alpha=0.7)
+    # plt.legend(loc='best')
+    
+    plt.savefig('loss.pdf', dpi=300, bbox_inches='tight')
+    plt.close()
+
+
 if __name__ == "__main__":
     # comparation()
     # test0()
     # xanadu_different_predeploy_degree()
     # cdf()
-    all_metric_pic()    
+    # all_metric_pic()    
     # machine_distribution()
+    loss_pic()

@@ -9,6 +9,7 @@ from .network.layer_dependent_ppo import CustomNetwork
 from .network.custom_cnn import CustomCNN
 from sim.wrapper import MyWrapper
 from .network.fm_net import FMNetwork
+from stable_baselines3.common.utils import get_linear_fn
 
 
 # env_name = "CartPole-v0"
