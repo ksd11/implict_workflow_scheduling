@@ -47,8 +47,13 @@ class Trainer(ABC):
     # 根据env_cfg创建env环境
     def make_env(self, env_cfg):
         def get_env():
-            env = LayerEdgeDynamicEnv(is_predeploy=True, predeploy_degree=1)
-            # env = gym.make(**env_cfg)
+            # if "is_predeploy" in env_cfg and env_cfg["is_predeploy"]:
+            #     # 若预部署环境
+            #     env = LayerEdgeDynamicEnv(is_predeploy=True, predeploy_degree=env_cfg["predeploy_degree"])
+            # else:
+            #     env = LayerEdgeDynamicEnv()
+            # env = LayerEdgeDynamicEnv()
+            env = gym.make(**env_cfg)
             env = Monitor(env)  # 添加Monitor包装器
             return env
         # self.env = Monitor(gym.make(**env_cfg))
@@ -117,8 +122,8 @@ class Trainer(ABC):
     
     # 获取最终模型保存位置
     def get_model_path(self):
-        if "special" in self.train_cfg:
-            return "./model/"+self.train_cfg["trainer_cls"]+"/"+ self.train_cfg["special"] + "/"+ self.env_cfg["id"] +".pkl"
+        if "prefix" in self.env_cfg:
+            return "./model/"+self.train_cfg["trainer_cls"]+"/"+ self.env_cfg["prefix"] + self.env_cfg["id"] +".pkl"
         else:
             return "./model/"+self.train_cfg["trainer_cls"]+"/"+ self.env_cfg["id"] +".pkl"
     

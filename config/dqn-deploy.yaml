@@ -1,7 +1,6 @@
 agent:
 trainer:
   trainer_cls: 'DQN'
-  special: 'predeploy-1'
   policy: "MlpPolicy"
   learning_rate: 1e-4
   batch_size: 512
@@ -11,7 +10,7 @@ trainer:
   target_update_interval: 3000
   verbose: 0 
   tensorboard_log: "./tmp/tensorboard/"
-  total_timesteps: 2e6
+  total_timesteps: 1e7
   progress_bar: True
   device: "cuda"
   policy_kwargs: 
@@ -27,3 +26,7 @@ trainer:
 env:
   # id: "LayerEdgeEnv-v0"
   id: "LayerEdgeDynamicEnv-v0"
+  is_predeploy: True       # 是否预部署
+  predeploy_degree: 1      # 提前预部署几个？
+  prefix: "predeploy1-"
+  

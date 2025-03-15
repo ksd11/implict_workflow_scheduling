@@ -10,7 +10,7 @@ import networkx as nx
 
 
 class LayerEdgeDynamicEnv(gym.Env):
-    def __init__(self, render_mode="human", need_log = False, storage_type: Type[Storage] = PriorityPlusStorage, is_predeploy: bool = False, predeploy_degree: int = 1):
+    def __init__(self, render_mode="human", need_log = False, storage_type: Type[Storage] = PriorityPlusStorage, is_predeploy: bool = False, predeploy_degree: int = 1, prefix=None):
         generator = DataGenerator()
         generator.load("data/workload_data")
         # pprint(generator.getSystemInfo())

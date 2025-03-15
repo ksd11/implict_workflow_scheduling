@@ -687,10 +687,10 @@ if __name__ == "__main__":
     # xanadu_different_predeploy_degree()
 
     # all_metric_pic(trait=False)    
-    # cdf(trait=False)
+    cdf(trait=True)
     # machine_distribution(trait=False)
     # loss_pic()
 
     # different_expel_strategy_test(trait=True)
 
-    predeploy_test(trait=True)
+    # predeploy_test(trait=True)
