@@ -610,7 +610,7 @@ def different_expel_strategy_all_test(seed=0, trait=True):
     different_expel_strategy_test(seed=seed, trait = trait, sched=sched, schedulerMapping=schedulerMapping)
 
 
-def plot_predeploy_comparison(results: dict, x_values: list):
+def plot_predeploy_comparison(results: dict, x_values: list, sched: str):
     plt.figure(figsize=(10, 6))
     
     # 为不同存储策略设置颜色和标记
@@ -643,35 +643,35 @@ def plot_predeploy_comparison(results: dict, x_values: list):
     plt.grid(True, linestyle='--', alpha=0.7)
     plt.legend()
     
-    plt.savefig('predeploy_comparison.pdf', bbox_inches='tight')
+    plt.savefig(f'{sched}-predeploy_comparison.pdf', bbox_inches='tight')
     plt.close()
 
-def predeploy_test(seed=0, trait = False):
+def predeploy_test(seed=172, trait = False):
     
-    # request_len_array = [500,1000,1500,2000,2500,3000,3500,4000]
-    request_len_array = [1000, 2000, 3000]
+    # request_len_array = [1000,2000,3000,4000,5000,6000,7000,8000]
+    request_len_array = [100,200,300,400,500,600,700,800]
+    # request_len_array = [1000, 2000, 3000]
+    sched = "dep-wait"
+    schedulerCls = scheduler_mapping[sched](**scheduler[sched])
+    envs = {
+        sched+"-0": (sim.LayerEdgeDynamicEnv(need_log=True, is_predeploy=False), schedulerCls),
+
+        sched+"-1": (sim.LayerEdgeDynamicEnv(need_log=True, is_predeploy=True, predeploy_degree=1), schedulerCls),
+        
+        sched+"-2": (sim.LayerEdgeDynamicEnv(need_log=True, is_predeploy=True, predeploy_degree=2), schedulerCls)
+    }
+
+    # sched = "dqn"
+    # dqn1 = scheduler_mapping["dqn"](config_path="config/dqn.yaml")
+    # dqn2 = scheduler_mapping["dqn"](config_path="config/dqn-deploy.yaml")
+    # envs = {
+    #     sched+"-0": (sim.LayerEdgeDynamicEnv(need_log=True, is_predeploy=False), dqn1),
+
+    #     sched+"-1": (sim.LayerEdgeDynamicEnv(need_log=True, is_predeploy=True, predeploy_degree=1), dqn2),
+    # }
 
     if trait:
         results = defaultdict(lambda: defaultdict(list))
-        # sched = "dep-eft"
-        # schedulerCls = scheduler_mapping[sched](**scheduler[sched])
-        # envs = {
-        #     sched+"-0": (sim.LayerEdgeDynamicEnv(need_log=True, is_predeploy=False), schedulerCls),
-
-        #     sched+"-1": (sim.LayerEdgeDynamicEnv(need_log=True, predeploy_degree=1), schedulerCls),
-            
-            # sched+"-2": (sim.LayerEdgeDynamicEnv(need_log=True, is_predeploy=True, predeploy_degree=2), schedulerCls)
-        # }
-
-        sched = "dqn"
-        dqn1 = scheduler_mapping["dqn"](config_path="config/dqn.yaml")
-        dqn2 = scheduler_mapping["dqn"](config_path="config/dqn-deploy.yaml")
-        envs = {
-            sched+"-0": (sim.LayerEdgeDynamicEnv(need_log=True, is_predeploy=False), dqn1),
-
-            sched+"-1": (sim.LayerEdgeDynamicEnv(need_log=True, is_predeploy=True, predeploy_degree=1), dqn2),
-        }
-
         for name, (env, schedulerCls) in envs.items():
             for trace_len in request_len_array:
                 info = one_experiment(env=env, scheduler=schedulerCls, seed=seed, options={'trace_len': trace_len})
@@ -684,15 +684,15 @@ def predeploy_test(seed=0, trait = False):
                 print()
 
                 # 保存为JSON文件
-                with open('__result__/predeploy.json', 'w') as f:
+                with open(f'__result__/{sched}-predeploy.json', 'w') as f:
                     json.dump(results, f, indent=4)
 
     else:
-        with open('__result__/predeploy.json', 'r') as f:
+        with open(f'__result__/{sched}-predeploy.json', 'r') as f:
             results = json.load(f)
 
     # print(results)
-    plot_predeploy_comparison(results["total_request_process_time"], request_len_array)
+    plot_predeploy_comparison(results["total_request_process_time"], request_len_array, sched = sched)
 
 if __name__ == "__main__":
     # comparation()
@@ -704,6 +704,6 @@ if __name__ == "__main__":
     # machine_distribution(trait=True)
     # loss_pic()
 
-    different_expel_strategy_all_test(trait=True)
+    # different_expel_strategy_all_test(trait=True)
 
-    # predeploy_test(trait=True)
+    predeploy_test(trait=True)

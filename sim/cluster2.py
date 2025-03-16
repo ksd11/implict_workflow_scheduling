@@ -255,7 +255,7 @@ class Machine:
     def predeploy_container(self, timestamp, container_id):
         # 获取容器对应的所有容器层
         layers = set(self.data.containers[container_id])
-        add_layers = self.getAddLayers(layers)
+        add_layers = self.getAddLayers(layers, hit=True)
         self.addNewLayers(timestamp, add_layers)
 
     # 假如在timestamp需要拉取容器，则拉取完毕的时间 (不是真正的部署，只是预估)
