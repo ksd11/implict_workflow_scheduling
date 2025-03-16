@@ -6,6 +6,7 @@ from stable_baselines3.common.monitor import Monitor
 from stable_baselines3.common.vec_env import DummyVecEnv, SubprocVecEnv
 from .network.layer_dependent_dqn import LayerDependentExtractor
 import gymnasium as gym
+from sim.storage import FCFSStorage, LRUStorage, PriorityStorage, PriorityPlusStorage
 
 CfgType = dict[str, Any]
 
@@ -47,12 +48,8 @@ class Trainer(ABC):
     # 根据env_cfg创建env环境
     def make_env(self, env_cfg):
         def get_env():
-            # if "is_predeploy" in env_cfg and env_cfg["is_predeploy"]:
-            #     # 若预部署环境
-            #     env = LayerEdgeDynamicEnv(is_predeploy=True, predeploy_degree=env_cfg["predeploy_degree"])
-            # else:
-            #     env = LayerEdgeDynamicEnv()
-            # env = LayerEdgeDynamicEnv()
+            if "storage_type" in env_cfg:
+                env_cfg["storage_type"] = eval(env_cfg["storage_type"])
             env = gym.make(**env_cfg)
             env = Monitor(env)  # 添加Monitor包装器
             return env

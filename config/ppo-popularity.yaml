@@ -8,23 +8,22 @@ trainer:
   n_epochs: 16
   policy_kwargs: 
     net_arch: 
-      pi: [256, 256]
-      vf: [256, 256]
+      pi: [512, 256, 128]
+      vf: [512, 256, 128]
   gamma: 0.95
   verbose: 0 
   tensorboard_log: "./tmp/tensorboard/"
-  total_timesteps: 1e7
+  total_timesteps: 5e6
   progress_bar: True
   device: "cpu"
   # 3. PPO特有参数
-  clip_range: 0.2        # 限制策略更新步长
-  ent_coef: 0.05        # 提高探索度
+  clip_range: 0.3        # 限制策略更新步长
+  ent_coef: 0.01        # 提高探索度
   # gae_lambda: 0.95       # GAE参数
   # vf_coef: 0.5          # 值函数系数
   # max_grad_norm: 0.5    # 梯度裁剪
   # target_kl: 0.01       # KL散度限制
 env:
   id: "LayerEdgeDynamicEnv-v0"
-  is_predeploy: True       # 是否预部署
-  predeploy_degree: 1      # 提前预部署几个？
-  prefix: "predeploy1-"
+  storage_type: "PriorityStorage"
+  prefix: "popularity"

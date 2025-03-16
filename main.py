@@ -525,7 +525,7 @@ def loss_pic():
     plt.savefig('loss.pdf', dpi=300, bbox_inches='tight')
     plt.close()
 
-def plot_storage_comparison(results: dict, x_values: list):
+def plot_storage_comparison(results: dict, x_values: list, sched: str):
     plt.figure(figsize=(10, 6))
     
     # 为不同存储策略设置颜色和标记
@@ -554,25 +554,24 @@ def plot_storage_comparison(results: dict, x_values: list):
     
     plt.xlabel('请求数量')
     plt.ylabel('总处理时间')
-    plt.title('不同存储策略的性能对比')
+    # plt.title('不同存储策略的性能对比')
     plt.grid(True, linestyle='--', alpha=0.7)
     plt.legend()
     
-    plt.savefig('storage_comparison.pdf', bbox_inches='tight')
+    plt.savefig(f'{sched}-storage_comparison.pdf', bbox_inches='tight')
     plt.close()
 
 
-def different_expel_strategy_test(seed=0, trait = False):
+def different_expel_strategy_test(seed=0, trait = False, sched = "dep-eft", schedulerMapping = None):
     storageCls = {"fcfs": FCFSStorage, "lru":LRUStorage, "popularity": PriorityStorage, "priority": PriorityPlusStorage}
     
-    sched = "ppo"
-    params = scheduler["ppo"]
+
     request_len_array = [500,1000,1500,2000,2500,3000,3500,4000]
 
     if trait:
-        schedulerCls = scheduler_mapping[sched](**params)
         results = defaultdict(lambda: defaultdict(list))
         for name, storageCls in storageCls.items():
+            schedulerCls = schedulerMapping[name]
             for trace_len in request_len_array:
                 env = sim.LayerEdgeDynamicEnv(need_log=True, storage_type=storageCls)
                 info = one_experiment(env=env, scheduler=schedulerCls, seed=seed, options={'trace_len': trace_len})
@@ -586,15 +585,29 @@ def different_expel_strategy_test(seed=0, trait = False):
                 print()
 
                 # 保存为JSON文件
-                with open('__result__/different_expel_strategy.json', 'w') as f:
+                with open(f'__result__/{sched}-different_expel_strategy.json', 'w') as f:
                     json.dump(results, f, indent=4)
 
     else:
-        with open('__result__/different_expel_strategy.json', 'r') as f:
+        with open(f'__result__/{sched}-different_expel_strategy.json', 'r') as f:
             results = json.load(f)
 
     # print(results)
-    plot_storage_comparison(results["total_request_process_time"], request_len_array)
+    plot_storage_comparison(results["total_request_process_time"], request_len_array, sched=sched)
+
+def different_expel_strategy_all_test(seed=0, trait=True):
+    # scheds = ["dep-eft", "dep-wait"]
+
+    sched = "dqn"
+    schedulerMapping = {
+        "fcfs": scheduler_mapping[sched](config_path="config/dqn-fcfs.yaml"),
+        "lru": scheduler_mapping[sched](config_path="config/dqn-lru.yaml"),
+        "popularity": scheduler_mapping[sched](config_path="config/dqn-popularity.yaml"),
+        "priority": scheduler_mapping[sched](config_path="config/dqn.yaml")
+    }
+
+    # for sched in scheds:
+    different_expel_strategy_test(seed=seed, trait = trait, sched=sched, schedulerMapping=schedulerMapping)
 
 
 def plot_predeploy_comparison(results: dict, x_values: list):
@@ -686,11 +699,11 @@ if __name__ == "__main__":
     # test0()
     # xanadu_different_predeploy_degree()
 
-    # all_metric_pic(trait=False)    
-    cdf(trait=True)
-    # machine_distribution(trait=False)
+    # all_metric_pic(trait=True)    
+    # cdf(trait=True)
+    # machine_distribution(trait=True)
     # loss_pic()
 
-    # different_expel_strategy_test(trait=True)
+    different_expel_strategy_all_test(trait=True)
 
     # predeploy_test(trait=True)

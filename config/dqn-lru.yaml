@@ -10,15 +10,12 @@ trainer:
   target_update_interval: 3000
   verbose: 0 
   tensorboard_log: "./tmp/tensorboard/"
-  total_timesteps: 1e7
+  total_timesteps: 2e6
   progress_bar: True
   device: "cuda"
   policy_kwargs: 
     net_arch: [256, 256]
 env:
-  # id: "LayerEdgeEnv-v0"
   id: "LayerEdgeDynamicEnv-v0"
-  is_predeploy: True       # 是否预部署
-  predeploy_degree: 1      # 提前预部署几个？
-  prefix: "predeploy1-"
-  
+  storage_type: "LRUStorage"
+  prefix: "lru"
