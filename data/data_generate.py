@@ -39,36 +39,7 @@ LFR
 
 
 '''
-class Config:
-    def __init__(self):
-        # 机器的信息
-        self._edge_delay = 1         # edge和edge之间数据传输延迟
-        self.cloud_delay = 15        # edge和cloud之间数据传输延迟
-        self._gamma = 1      # average layer pulling latency, cloud is 0.5
-        self.lo_storage = 50
-        self.hi_storage = 100
-        self._c = 1          # 单核平均计算能力
-        self.core_number = list(range(1,5))
-
-        # 请求信息
-        self._func_comp = 2
-        self.request_interval = 100  # 请求到达的间隔
-        self._d = 0.5        # average data transmission size
-
-        # layer信息
-        self.lo_layer_size = 0.1
-        self.hi_layer_size = 2
-        self.lo_func_layer_number = 5
-        self.hi_func_layer_number = 20
-
-        # cluster相关
-        self.num_edge_server = 5
-        self.num_layers = 1000
-        self.num_containers = 500
-        self.trace_len = 2000
-
-# 创建全局配置对象
-config = Config()
+from .config import Config
 
 class DataGenerator:
     def __init__(self):
@@ -80,37 +51,34 @@ class DataGenerator:
         self.task_containers = {}  # 任务-容器映射
         self.traces = []        # 请求序列
         
-    def generate(self, job_csv
-                 , num_edge_nodes=config.num_edge_server
-                 , num_layers=config.num_layers
-                 , num_containers=config.num_containers
-                 , trace_len=config.trace_len
-                 , mean_interarrival=config.request_interval
-                 , seed=42, zipf_a = 0):
+    def generate(self, config: Config, seed=42, zipf_a = 0):
+        self.config = config
+
         """生成所有需要的数据"""
         np.random.seed(seed)
         
         # 1. 生成节点信息
-        self._generate_nodes(num_edge_nodes)
+        self._generate_nodes(config.num_edge_nodes)
         
         # 2. 读取job信息并添加数据传输大小
-        self._load_jobs(job_csv)
+        self._load_jobs(config.job_csv)
         
         # 3. 生成layer信息
-        self._generate_layers(num_layers)
+        self._generate_layers(config.num_layers)
         
         # 4. 生成container信息
-        self._generate_containers(num_containers)
+        self._generate_containers(config.num_containers)
         
         # 5. 生成task信息
         self._generate_tasks_info(zipf_a = zipf_a)
         
         # 6. 生成请求序列
-        self.traces = self.getNewTrace(seed=seed, mean_interarrival=mean_interarrival, trace_len=trace_len)
+        self.traces = self.getNewTrace(seed=seed, mean_interarrival=config.mean_interarrival, trace_len=config.trace_len)
         
         return self
     
     def _generate_nodes(self, num_edge_nodes):
+        config = self.config
         """生成边缘节点和云节点信息"""
         n = num_edge_nodes + 1
         self.nodes = [0] * (n)
@@ -119,7 +87,7 @@ class DataGenerator:
         # 生成边缘节点间延迟
         for i in range(num_edge_nodes):
             for j in range(i+1, num_edge_nodes):
-                delay = np.random.uniform(0.5*config._edge_delay, 1.5*config._edge_delay)
+                delay = np.random.uniform(0.5*self.config._edge_delay, 1.5*config._edge_delay)
                 self.delay_matrix[i][j] = delay
                 self.delay_matrix[j][i] = delay
                 
@@ -146,6 +114,7 @@ class DataGenerator:
         }
     
     def _load_jobs(self, job_csv):
+        config = self.config
         """加载作业信息并添加数据传输大小和边的概率"""
         df = pd.read_csv(job_csv)
         
@@ -194,6 +163,7 @@ class DataGenerator:
             self._add_virtual_source_and_sink(G, job_name)
     
     def _add_virtual_source_and_sink(self, G, job_name):
+        config = self.config
         """添加虚拟source和sink节点，并设置相应的边概率"""
         # 添加虚拟source节点
         source_node = f"{job_name}_source"
@@ -226,6 +196,7 @@ class DataGenerator:
                       data_size=np.random.uniform(0.5*config._d, 1.5*config._d))  # 虚拟边的数据传输大小为0
 
     def _generate_layers(self, num_layers):
+        config = self.config
         """生成层信息"""
         self.layers = [0] * num_layers
         for i in range(num_layers):
@@ -233,6 +204,7 @@ class DataGenerator:
             
     
     def _generate_containers(self, num_containers):
+        config = self.config
         """生成容器信息"""
         layer_ids = list(range(len(self.layers)))
         self.containers = [0] * num_containers
@@ -254,6 +226,7 @@ class DataGenerator:
 
     
     def _generate_tasks_info(self, zipf_a = 0):
+        config = self.config
         """为任务分配容器并生成CPU占用"""
         all_tasks = []
         task_info = {}  # 存储任务的所有信息
@@ -409,7 +382,7 @@ class DataGenerator:
 
         return self
     
-    def getNewTrace(self, seed, trace_len = 100, mean_interarrival = config.request_interval):
+    def getNewTrace(self, seed, trace_len = 100, mean_interarrival = 1):
         """生成新的请求序列"""
         np.random.seed(seed)
         
@@ -450,18 +423,13 @@ class DataGenerator:
         visualize_dag(G, f"Job {job_name} DAG", layout_type)
     
 def main():
+    config = Config()
     # 创建数据生成器
     generator = DataGenerator()
     # generator.load('data/workload_data')
     
     # 生成数据
-    generator.generate(
-        job_csv='data/selected_jobs.csv',
-        num_edge_nodes=config.num_edge_server,
-        num_layers=config.num_layers,
-        num_containers=config.num_containers,
-        trace_len=config.trace_len
-    )
+    generator.generate(config)
     
     # 保存数据
     generator.save('data/workload_data')
