@@ -52,7 +52,7 @@ class Config:
 
         # 请求信息
         self._func_comp = 2
-        self.request_interval = 1  # 请求到达的间隔
+        self.request_interval = 100  # 请求到达的间隔
         self._d = 0.5        # average data transmission size
 
         # layer信息

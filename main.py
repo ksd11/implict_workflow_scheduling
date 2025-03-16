@@ -699,16 +699,45 @@ def predeploy_test(seed=0, trait = False):
     # print(results)
     plot_predeploy_comparison(results["total_request_process_time"], request_len_array, sched = sched)
 
+def difference():
+    with open('__result__/all_metric.json', 'r') as f:
+        results = json.load(f)
+    # 获取两组指标数据
+    wait_image = results["total_request_wait_for_image"]
+    wait_data = results["total_request_wait_for_data"]
+    
+    differences = {}
+    for algo in wait_image.keys():
+        # 计算每个算法两组数据的相对差异
+        image_data = np.array(wait_image[algo])
+        data_data = np.array(wait_data[algo])
+        
+        # 使用相对差异：|a-b|/max(a,b)
+        relative_diff = np.mean(
+            np.abs(image_data - data_data) / image_data
+        )
+        
+        differences[algo] = relative_diff
+    
+    # 按差异度排序
+    sorted_algos = sorted(differences.items(), key=lambda x: x[1])
+    
+    print("算法差异度排序(越小表示两组数据差异越小):")
+    for algo, diff in sorted_algos:
+        print(f"{algo}: {diff:.4f}")
+
 if __name__ == "__main__":
     # comparation()
     # test0()
     # xanadu_different_predeploy_degree()
 
     # all_metric_pic(trait=True)    
-    # cdf(trait=True)
+    # cdf(trait=False)
     # machine_distribution(trait=True)
     # loss_pic()
 
     # different_expel_strategy_all_test(trait=True)
 
-    predeploy_test(trait=True)
+    # predeploy_test(trait=True)
+
+    difference()
