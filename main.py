@@ -598,12 +598,12 @@ def different_expel_strategy_test(seed=0, trait = False, sched = "dep-eft", sche
 def different_expel_strategy_all_test(seed=0, trait=True):
     # scheds = ["dep-eft", "dep-wait"]
 
-    sched = "dqn"
+    sched = "ppo"
     schedulerMapping = {
-        "fcfs": scheduler_mapping[sched](config_path="config/dqn-fcfs.yaml"),
-        "lru": scheduler_mapping[sched](config_path="config/dqn-lru.yaml"),
-        "popularity": scheduler_mapping[sched](config_path="config/dqn-popularity.yaml"),
-        "priority": scheduler_mapping[sched](config_path="config/dqn.yaml")
+        "fcfs": scheduler_mapping[sched](config_path="config/ppo-fcfs.yaml"),
+        "lru": scheduler_mapping[sched](config_path="config/ppo-lru.yaml"),
+        "popularity": scheduler_mapping[sched](config_path="config/ppo-popularity.yaml"),
+        "priority": scheduler_mapping[sched](config_path="config/ppo.yaml")
     }
 
     # for sched in scheds:
@@ -646,29 +646,34 @@ def plot_predeploy_comparison(results: dict, x_values: list, sched: str):
     plt.savefig(f'{sched}-predeploy_comparison.pdf', bbox_inches='tight')
     plt.close()
 
-def predeploy_test(seed=172, trait = False):
+def predeploy_test(seed=0, trait = False):
     
-    # request_len_array = [1000,2000,3000,4000,5000,6000,7000,8000]
-    request_len_array = [100,200,300,400,500,600,700,800]
-    # request_len_array = [1000, 2000, 3000]
-    sched = "dep-wait"
-    schedulerCls = scheduler_mapping[sched](**scheduler[sched])
-    envs = {
-        sched+"-0": (sim.LayerEdgeDynamicEnv(need_log=True, is_predeploy=False), schedulerCls),
-
-        sched+"-1": (sim.LayerEdgeDynamicEnv(need_log=True, is_predeploy=True, predeploy_degree=1), schedulerCls),
-        
-        sched+"-2": (sim.LayerEdgeDynamicEnv(need_log=True, is_predeploy=True, predeploy_degree=2), schedulerCls)
-    }
-
-    # sched = "dqn"
-    # dqn1 = scheduler_mapping["dqn"](config_path="config/dqn.yaml")
-    # dqn2 = scheduler_mapping["dqn"](config_path="config/dqn-deploy.yaml")
+    request_len_array = [500,1000,1500,2000,2500,3000,3500,4000]
+    # request_len_array = [100,200,300,400,500,600,700,800]
+    
+    # sched = "dep-eft"
+    # schedulerCls = scheduler_mapping[sched](**scheduler[sched])
     # envs = {
-    #     sched+"-0": (sim.LayerEdgeDynamicEnv(need_log=True, is_predeploy=False), dqn1),
+    #     sched+"-0": (sim.LayerEdgeDynamicEnv(need_log=True, is_predeploy=False), schedulerCls),
 
-    #     sched+"-1": (sim.LayerEdgeDynamicEnv(need_log=True, is_predeploy=True, predeploy_degree=1), dqn2),
+    #     sched+"-1": (sim.LayerEdgeDynamicEnv(need_log=True, is_predeploy=True, predeploy_degree=1), schedulerCls),
+        
+    #     sched+"-2": (sim.LayerEdgeDynamicEnv(need_log=True, is_predeploy=True, predeploy_degree=2), schedulerCls),
+
+    #     sched+"-3": (sim.LayerEdgeDynamicEnv(need_log=True, is_predeploy=True, predeploy_degree=3), schedulerCls)
     # }
+
+    sched = "ppo"
+    ppo_origin = scheduler_mapping["ppo"](config_path="config/ppo-100.yaml")
+    ppo_trained = scheduler_mapping["ppo"](config_path="config/ppo-100-predeploy-1.yaml")
+    # dqn2 = scheduler_mapping["dqn"](config_path="config/dqn-deploy.yaml")
+    envs = {
+        sched+"-0": (sim.LayerEdgeDynamicEnv(need_log=True, is_predeploy=False), ppo_origin),
+
+        sched+"-1": (sim.LayerEdgeDynamicEnv(need_log=True, is_predeploy=True, predeploy_degree=1), ppo_origin),
+
+         sched+"(trained)-1": (sim.LayerEdgeDynamicEnv(need_log=True, is_predeploy=True, predeploy_degree=1), ppo_trained),
+    }
 
     if trait:
         results = defaultdict(lambda: defaultdict(list))

@@ -226,6 +226,7 @@ class LayerEdgeDynamicEnv(gym.Env):
                 global_id=task.global_id
             )
             self.task_queue.add_task(new_task)
+            return new_task
 
     # 执行虚拟任务，必须在origin_pos指定的位置执行
     def __check_and_do_virtual_task(self):
@@ -237,6 +238,7 @@ class LayerEdgeDynamicEnv(gym.Env):
     def step(self, action, after_deploy_hook_func = None):
         reward = 0
         task = self.task_queue.peek()
+        timestamp = task.get_arrival_time()
         if task == None:
             assert False, "Env is done!!"
 
@@ -263,7 +265,11 @@ class LayerEdgeDynamicEnv(gym.Env):
             self.__predeploy(self.predeploy_degree)
         
         # 到下一个task
-        self.__next(action, execution_info["finish_time"])
+        new_task = self.__next(action, execution_info["finish_time"])
+
+        # if self.is_predeploy and new_task != None:
+        #     # 环境开启了预部署
+        #     self.predeploy(timestamp, new_task.container_id)
 
         # 每次__getState()的时候就会排除所有虚拟任务
         return self.__getState(), reward, self.__idDone(), False, {"schedule_info": self.schedule_info}
