@@ -1,29 +1,45 @@
 class Config:
     def __init__(self):
-        self.job_csv = 'data/selected_jobs.csv'
+        # 存储所有配置项
+        self._config = {
+            'job_csv': 'data/selected_jobs.csv',
+            '_edge_delay': 1,
+            '_gamma': 1,
+            'lo_storage': 50,
+            'hi_storage': 100,
+            '_c': 1,
+            'core_number': list(range(1,5)),
+            '_func_comp': 2,
+            'mean_interarrival': 1,
+            '_d': 0.5,
+            'lo_layer_size': 0.1,
+            'hi_layer_size': 2,
+            'lo_func_layer_number': 5,
+            'hi_func_layer_number': 20,
+            'num_edge_nodes': 5,
+            'num_layers': 1000,
+            'num_containers': 500,
+            'trace_len': 2000
+        }
+        
+    def __getattr__(self, name):
+        """支持点访问"""
+        return self._config[name]
+        
+    def __setattr__(self, name, value):
+        """支持点赋值"""
+        if name == '_config':
+            super().__setattr__(name, value)
+        else:
+            self._config[name] = value
+            
+    def __getitem__(self, key):
+        """支持下标访问"""
+        return self._config[key]
+        
+    def __setitem__(self, key, value):
+        """支持下标赋值"""
+        self._config[key] = value
 
-        # 机器的信息
-        self._edge_delay = 1         # edge和edge之间数据传输延迟
-        self.cloud_delay = 15        # edge和cloud之间数据传输延迟
-        self._gamma = 1      # average layer pulling latency, cloud is 0.5
-        self.lo_storage = 50
-        self.hi_storage = 100
-        self._c = 1          # 单核平均计算能力
-        self.core_number = list(range(1,5))
-
-        # 请求信息
-        self._func_comp = 2
-        self.mean_interarrival = 1  # 请求到达的间隔
-        self._d = 0.5        # average data transmission size
-
-        # layer信息
-        self.lo_layer_size = 0.1
-        self.hi_layer_size = 2
-        self.lo_func_layer_number = 5
-        self.hi_func_layer_number = 20
-
-        # cluster相关
-        self.num_edge_nodes = 5
-        self.num_layers = 1000
-        self.num_containers = 500
-        self.trace_len = 2000
+    def __str__(self):
+        return str(self._config)

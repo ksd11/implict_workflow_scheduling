@@ -10,9 +10,15 @@ import networkx as nx
 
 
 class LayerEdgeDynamicEnv(gym.Env):
-    def __init__(self, render_mode="human", need_log = False, storage_type: Type[Storage] = PriorityPlusStorage, is_predeploy: bool = False, predeploy_degree: int = 1, prefix=None):
+    def __init__(self, render_mode="human"
+                 , need_log = False
+                 , storage_type: Type[Storage] = PriorityPlusStorage
+                 , is_predeploy: bool = False
+                 , predeploy_degree: int = 1
+                 , prefix=None
+                 , workload_data='data/workload_data'):
         generator = DataGenerator()
-        generator.load("data/workload_data")
+        generator.load(workload_data)
         # pprint(generator.getSystemInfo())
         self.data = generator
         self.totoal_server = len(self.data.nodes) # 总server的个数

@@ -93,8 +93,8 @@ class DataGenerator:
                 
         # 设置边缘到云的延迟
         for i in range(num_edge_nodes):
-            self.delay_matrix[i][n-1] = config.cloud_delay
-            self.delay_matrix[n-1][i] = config.cloud_delay
+            self.delay_matrix[i][n-1] = 15*config._edge_delay
+            self.delay_matrix[n-1][i] = 15*config._edge_delay
 
         # 生成边缘节点
         for i in range(num_edge_nodes):
