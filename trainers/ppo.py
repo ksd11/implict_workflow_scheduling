@@ -45,17 +45,17 @@ class PPO(Trainer):
         ]
         # train_cfg["policy"] = CustomNetwork
         # 1. 创建学习率衰减函数
-        initial_lr = train_cfg.get("learning_rate", 1e-3)
-        end_lr = initial_lr * 0.1  # 最终学习率为初始值的10%
+        # initial_lr = train_cfg.get("learning_rate", 1e-3)
+        # end_lr = initial_lr * 0.1  # 最终学习率为初始值的10%
         
-        # 线性衰减
-        self.lr_schedule = get_linear_fn(
-            initial_lr,  # 初始学习率
-            end_lr,     # 最终学习率
-            1           # 总进度为1
-        )
-        # 2. 更新训练配置
-        train_cfg["learning_rate"] = self.lr_schedule
+        # # 线性衰减
+        # self.lr_schedule = get_linear_fn(
+        #     initial_lr,  # 初始学习率
+        #     end_lr,     # 最终学习率
+        #     1           # 总进度为1
+        # )
+        # # 2. 更新训练配置
+        # train_cfg["learning_rate"] = self.lr_schedule
 
         self.model = self._init_model(model=ST_PPO, train_cfg=train_cfg, params=params)
 

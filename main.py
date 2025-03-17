@@ -605,13 +605,22 @@ def different_expel_strategy_test(seed=0, trait = False, sched = "dep-eft", sche
 def different_expel_strategy_all_test(seed=0, trait=True):
     # scheds = ["dep-eft", "dep-wait"]
 
-    sched = "ppo"
+    sched = "dqn"
     schedulerMapping = {
-        "fcfs": scheduler_mapping[sched](config_path="config/ppo-fcfs.yaml"),
-        "lru": scheduler_mapping[sched](config_path="config/ppo-lru.yaml"),
-        "popularity": scheduler_mapping[sched](config_path="config/ppo-popularity.yaml"),
-        "priority": scheduler_mapping[sched](config_path="config/ppo.yaml")
+        "fcfs": scheduler_mapping[sched](config_path="config/dqn.yaml"),
+        "lru": scheduler_mapping[sched](config_path="config/dqn.yaml"),
+        "popularity": scheduler_mapping[sched](config_path="config/dqn.yaml"),
+        "priority": scheduler_mapping[sched](config_path="config/dqn.yaml")
     }
+
+    # sched = "dep-eft"
+    # sched = "dep-wait"
+    # schedulerMapping = {
+    #     "fcfs": scheduler_mapping[sched](**scheduler[sched]),
+    #     "lru": scheduler_mapping[sched](**scheduler[sched]),
+    #     "popularity": scheduler_mapping[sched](**scheduler[sched]),
+    #     "priority": scheduler_mapping[sched](**scheduler[sched])
+    # }
 
     # for sched in scheds:
     different_expel_strategy_test(seed=seed, trait = trait, sched=sched, schedulerMapping=schedulerMapping)
@@ -738,12 +747,12 @@ if __name__ == "__main__":
     # test0()
     # xanadu_different_predeploy_degree()
 
-    all_metric_pic(trait=True)    
+    # all_metric_pic(trait=True)    
     # cdf(trait=False)
     # machine_distribution(trait=True)
     # loss_pic()
 
-    # different_expel_strategy_all_test(trait=True)
+    different_expel_strategy_all_test(trait=True)
 
     # predeploy_test(trait=True)
 

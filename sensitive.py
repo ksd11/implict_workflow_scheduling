@@ -92,7 +92,7 @@ def sensitive_experiment(sensitive_params
         with open(f'__result__/sensitive_{param_name}.json', 'r') as f:
             results = json.load(f)
 
-    plot_results(results["total_request_process_time"], sensitive_params, x_label=human_name, fig_name=f"sensitive_{param_name}", algos=scheduler_name, threshold=100000)
+    plot_results(results["total_request_process_time"], sensitive_params, x_label=human_name, fig_name=f"sensitive_{param_name}", algos=scheduler_name, threshold=150000)
 
     # plot_results(results["total_request_waiting_time"], sensitive_params, x_label=human_name, fig_name=f"sensitive_{param_name}_wait", algos=scheduler_name)
 
