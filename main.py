@@ -176,7 +176,7 @@ def one_experiment(env, scheduler: Scheduler, seed = None, options = {'trace_len
 
 
 # 根据task_number变化的折线图
-def plot_results(results: dict, x_values: list, x_label: str = "请求数量", y_label="完成时间",fig_name = "comparison", algos = ["ppo","dqn", "dep-wait", "dep-eft", "random", "dep-down"], threshold: float = 100000, legend_pos = "best"):
+def plot_results(results: dict, x_values: list, x_label: str = "请求数量", y_label="完成时间",fig_name = "comparison", algos = ["ppo", "dqn", "dep-wait", "dep-eft", "random", "dep-down"], threshold: float = 100000, legend_pos = "best"):
     plt.figure(figsize=(8, 6))
 
     if algos is None:
@@ -362,6 +362,13 @@ def all_metric_pic(seed = 0, trait = True):
     request_len_array = [500,1000,1500,2000,2500,3000,3500,4000]
     if trait:
         results = defaultdict(lambda: defaultdict(list))
+
+        # 增量更新
+        # with open('__result__/all_metric.json', 'r') as f:
+        #     results = json.load(f)
+        #     for k in results:
+        #         results[k]["dqn"] = []
+
         for sched, info in scheduler.items():
             schedulerCls = scheduler_mapping[sched](**info)
             for trace_len in request_len_array:
@@ -731,7 +738,7 @@ if __name__ == "__main__":
     # test0()
     # xanadu_different_predeploy_degree()
 
-    # all_metric_pic(trait=True)    
+    all_metric_pic(trait=True)    
     # cdf(trait=False)
     # machine_distribution(trait=True)
     # loss_pic()
@@ -740,4 +747,4 @@ if __name__ == "__main__":
 
     # predeploy_test(trait=True)
 
-    difference()
+    # difference()

@@ -10,11 +10,11 @@ trainer:
   target_update_interval: 3000
   verbose: 0 
   tensorboard_log: "./tmp/tensorboard/"
-  total_timesteps: 2e6
+  total_timesteps: 1e7
   progress_bar: True
   device: "cuda"
   policy_kwargs: 
-    net_arch: [256, 256]
+    net_arch: [256, 128, 64]
 env:
   id: "LayerEdgeDynamicEnv-v0"
   storage_type: "PriorityStorage"

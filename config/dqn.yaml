@@ -14,7 +14,7 @@ trainer:
   progress_bar: True
   device: "cuda"
   policy_kwargs: 
-    net_arch: [256, 256]
+    net_arch: [256, 128, 64]
     # features_extractor_class: 'LayerDependentExtractor'
     # features_extractor_kwargs: 
     #   'features_dim': 256 

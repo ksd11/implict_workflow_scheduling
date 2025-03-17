@@ -22,6 +22,7 @@ num_layers = [400, 700, 1000, 1300, 1600]
 trace_len = 2000
 seed = 0
 scheduler_name = ["dep-eft", "dep-wait", "dqn", "ppo"]
+# scheduler_name = ["dqn"]
 # scheduler: Scheduler = scheduler_mapping["ppo"](config_path="config/ppo.yaml")
 
 
@@ -31,6 +32,12 @@ def sensitive_experiment(sensitive_params
              , trait=False):
     if trait:
         results = defaultdict(lambda: defaultdict(list))
+        # 增量更新
+        # with open(f'__result__/sensitive_{param_name}.json', 'r') as f:
+        #     results = json.load(f)
+        #     for k in results:
+        #         results[k]["dqn"] = []
+
         for c in sensitive_params:
             print(f"{param_name}: {c}")
             config = Config()
@@ -85,7 +92,7 @@ def sensitive_experiment(sensitive_params
         with open(f'__result__/sensitive_{param_name}.json', 'r') as f:
             results = json.load(f)
 
-    plot_results(results["total_request_process_time"], sensitive_params, x_label=human_name, fig_name=f"sensitive_{param_name}", algos=scheduler_name, threshold=300000)
+    plot_results(results["total_request_process_time"], sensitive_params, x_label=human_name, fig_name=f"sensitive_{param_name}", algos=scheduler_name, threshold=100000)
 
     # plot_results(results["total_request_waiting_time"], sensitive_params, x_label=human_name, fig_name=f"sensitive_{param_name}_wait", algos=scheduler_name)
 
@@ -98,34 +105,34 @@ def sensitive_experiment(sensitive_params
 
 
 
-# sensitive_experiment(sensitive_params=_func_comp
-#                         , param_name="_func_comp"
-#                         , human_name="平均计算消耗"
-#                         , trait=True)
+sensitive_experiment(sensitive_params=_func_comp
+                        , param_name="_func_comp"
+                        , human_name="平均计算消耗"
+                        , trait=False)
 
-# sensitive_experiment(sensitive_params=_d
-#                         , param_name="_d"
-#                         , human_name="平均数据传输大小"
-#                         , trait=True)
+sensitive_experiment(sensitive_params=_d
+                        , param_name="_d"
+                        , human_name="平均数据传输大小"
+                        , trait=False)
 
-# sensitive_experiment(sensitive_params=_edge_delay
-#                         , param_name="_edge_delay"
-#                         , human_name="平均数据传输延迟"
-#                         , trait=True)
+sensitive_experiment(sensitive_params=_edge_delay
+                        , param_name="_edge_delay"
+                        , human_name="平均数据传输延迟"
+                        , trait=False)
 
 sensitive_experiment(sensitive_params=_gamma
                         , param_name="_gamma"
                         , human_name="平均镜像拉取延迟"
-                        , trait=True)
+                        , trait=False)
 
-# sensitive_experiment(sensitive_params=num_containers
-#                         , param_name="num_containers"
-#                         , human_name="容器数量"
-#                         , trait=True)
+sensitive_experiment(sensitive_params=num_containers
+                        , param_name="num_containers"
+                        , human_name="容器数量"
+                        , trait=False)
 
-# sensitive_experiment(sensitive_params=num_layers
-#                         , param_name="num_layers"
-#                         , human_name="镜像层数量"
-#                          , trait=True)
+sensitive_experiment(sensitive_params=num_layers
+                        , param_name="num_layers"
+                        , human_name="镜像层数量"
+                         , trait=False)
 
 

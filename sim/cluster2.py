@@ -175,9 +175,8 @@ class Machine:
     def place(self, core_id, start, end, timestamp=None):
         # print(f"edge[{self.idx}-{core_id}] occupy: {start}-{end}")
         self.cores[core_id].occupy(start, end, timestamp=timestamp)
-   
-    def addTask(self, task: Task) -> Tuple[float, float]:
-        
+
+    def get_ready_time(self, task):
         timestamp = task.get_arrival_time()
         parent_pos = task.parent_pos
         data_size = task.data_size
@@ -197,6 +196,13 @@ class Machine:
 
         # ready_time为数据准备好，并且镜像层也准备好
         ready_time =ceil2(max(data_ready_time, image_ready_time))
+        return ready_time, data_ready_time, image_ready_time
+   
+    def addTask(self, task: Task) -> Tuple[float, float]:
+        
+        timestamp = task.get_arrival_time()
+
+        ready_time,data_ready_time,image_ready_time = self.get_ready_time(task)
         
         # 计算Task完成时间
         execute_time = ceil2(task.cpu / self.cpu)
