@@ -109,7 +109,7 @@ class DataGenerator:
         self.nodes[num_edge_nodes] = {
             'pull_delay': 0.5*config._gamma,
             'storage': config.hi_storage * 2,   # 较大存储容量
-            'cpu':  2,                    # 较大计算能力
+            'cpu':  2 * config._c,                    # 较大计算能力
             'core_number': config.core_number[-1]
         }
     
