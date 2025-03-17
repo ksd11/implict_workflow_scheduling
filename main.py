@@ -367,7 +367,7 @@ def all_metric_pic(seed = 0, trait = True):
         # with open('__result__/all_metric.json', 'r') as f:
         #     results = json.load(f)
         #     for k in results:
-        #         results[k]["dqn"] = []
+        #         results[k]["ppo"] = []
 
         for sched, info in scheduler.items():
             schedulerCls = scheduler_mapping[sched](**info)
