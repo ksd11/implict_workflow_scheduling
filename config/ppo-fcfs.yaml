@@ -19,7 +19,7 @@ trainer:
   device: "cpu"
   # 3. PPO特有参数
   clip_range: 0.3        # 限制策略更新步长
-  ent_coef: 0.05        # 提高探索度
+  ent_coef: 0.01        # 提高探索度
 env:
   id: "LayerEdgeDynamicEnv-v0"
   storage_type: "FCFSStorage"

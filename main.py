@@ -420,7 +420,7 @@ def all_metric_pic(seed = 0, trait = True):
             results
 
 
-    plot_results(results["total_request_process_time"], request_len_array, y_label="总处理时间", fig_name="total_request_process_time")
+    plot_results(results["total_request_process_time"], request_len_array, y_label="总处理时间", fig_name="total_request_process_time", legend_pos="center left")
 
     plot_results(results["all_task_execution_time"], request_len_array, y_label="总计算时间", fig_name="all_task_execution_time")
 
@@ -618,12 +618,12 @@ def different_expel_strategy_all_test(seed=0, trait=True):
         #     "Popularity": scheduler_mapping["DQN"](config_path="config/dqn.yaml"),
         #     "Priority": scheduler_mapping["DQN"](config_path="config/dqn.yaml")
         # },
-        "PPO": {
-            "FCFS": scheduler_mapping["PPO"](config_path="config/ppo-fcfs.yaml"),
-            "LRU": scheduler_mapping["PPO"](config_path="config/ppo-lru.yaml"),
-            "Popularity": scheduler_mapping["PPO"](config_path="config/ppo-popularity.yaml"),
-            "Priority": scheduler_mapping["PPO"](config_path="config/ppo.yaml")
-        },
+        # "PPO": {
+        #     "FCFS": scheduler_mapping["PPO"](config_path="config/ppo.yaml"),
+        #     "LRU": scheduler_mapping["PPO"](config_path="config/ppo.yaml"),
+        #     "Popularity": scheduler_mapping["PPO"](config_path="config/ppo.yaml"),
+        #     "Priority": scheduler_mapping["PPO"](config_path="config/ppo.yaml")
+        # },
         # "Dep-Eft": {
         #         "FCFS": scheduler_mapping["Dep-Eft"](**scheduler["Dep-Eft"]),
         #         "LRU": scheduler_mapping["Dep-Eft"](**scheduler["Dep-Eft"]),
@@ -635,7 +635,19 @@ def different_expel_strategy_all_test(seed=0, trait=True):
         #     "LRU": scheduler_mapping["Dep-Wait"](**scheduler["Dep-Wait"]),
         #     "Popularity": scheduler_mapping["Dep-Wait"](**scheduler["Dep-Wait"]),
         #     "Priority": scheduler_mapping["Dep-Wait"](**scheduler["Dep-Wait"]),
-        # }
+        # },
+        # "PPO": {
+        #     "FCFS": scheduler_mapping["PPO"](config_path="config/ppo-fcfs.yaml"),
+        #     "LRU": scheduler_mapping["PPO"](config_path="config/ppo-lru.yaml"),
+        #     "Popularity": scheduler_mapping["PPO"](config_path="config/ppo-popularity.yaml"),
+        #     "Priority": scheduler_mapping["PPO"](config_path="config/ppo.yaml")
+        # },
+        "DQN": {
+            "FCFS": scheduler_mapping["DQN"](config_path="config/dqn-fcfs.yaml"),
+            "LRU": scheduler_mapping["DQN"](config_path="config/dqn-lru.yaml"),
+            "Popularity": scheduler_mapping["DQN"](config_path="config/dqn-popularity.yaml"),
+            "Priority": scheduler_mapping["DQN"](config_path="config/dqn.yaml")
+        },
     }
 
     for sched,schedulerMapping in scheds.items():
@@ -768,8 +780,8 @@ if __name__ == "__main__":
     # machine_distribution(trait=True)
     # loss_pic()
 
-    different_expel_strategy_all_test(trait=True)
+    # different_expel_strategy_all_test(trait=True)
 
-    # predeploy_test(trait=True)
+    predeploy_test(trait=True)
 
     # difference()
