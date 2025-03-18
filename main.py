@@ -609,22 +609,22 @@ def different_expel_strategy_test(seed=0, trait = False, sched = "dep-eft", sche
 def different_expel_strategy_all_test(seed=0, trait=True):
     # scheds = ["dep-eft", "dep-wait"]
 
-    # sched = "dqn"
-    # schedulerMapping = {
-    #     "fcfs": scheduler_mapping[sched](config_path="config/dqn.yaml"),
-    #     "lru": scheduler_mapping[sched](config_path="config/dqn.yaml"),
-    #     "popularity": scheduler_mapping[sched](config_path="config/dqn.yaml"),
-    #     "priority": scheduler_mapping[sched](config_path="config/dqn.yaml")
-    # }
-
-    sched = "dep-eft"
-    # sched = "dep-wait"
+    sched = "dqn"
     schedulerMapping = {
-        "fcfs": scheduler_mapping[sched](**scheduler[sched]),
-        "lru": scheduler_mapping[sched](**scheduler[sched]),
-        "popularity": scheduler_mapping[sched](**scheduler[sched]),
-        "priority": scheduler_mapping[sched](**scheduler[sched]),
+        "fcfs": scheduler_mapping[sched](config_path="config/dqn.yaml"),
+        "lru": scheduler_mapping[sched](config_path="config/dqn.yaml"),
+        "popularity": scheduler_mapping[sched](config_path="config/dqn.yaml"),
+        "priority": scheduler_mapping[sched](config_path="config/dqn.yaml")
     }
+
+    # sched = "dep-eft"
+    # sched = "dep-wait"
+    # schedulerMapping = {
+    #     "fcfs": scheduler_mapping[sched](**scheduler[sched]),
+    #     "lru": scheduler_mapping[sched](**scheduler[sched]),
+    #     "popularity": scheduler_mapping[sched](**scheduler[sched]),
+    #     "priority": scheduler_mapping[sched](**scheduler[sched]),
+    # }
 
     # for sched in scheds:
     different_expel_strategy_test(seed=seed, trait = trait, sched=sched, schedulerMapping=schedulerMapping)
