@@ -8,12 +8,12 @@ from .dep_eft import DepEFTScheduler
 from .trainable_predeploy import TrainablePredeployScheduler
 
 scheduler_mapping = {
-    "dqn": TrainableScheduler,
-    "ppo": TrainableScheduler,
-    "random": RandomScheduler,
+    "DQN": TrainableScheduler,
+    "PPO": TrainableScheduler,
+    "Random": RandomScheduler,
     "xanadu": XanaduScheduler,
-    "dep-down": DepDownScheduler,
-    "dep-wait": DepWaitScheduler,
-    "dep-eft": DepEFTScheduler,
+    "Dep-Down": DepDownScheduler,
+    "Dep-Wait": DepWaitScheduler,
+    "Dep-Eft": DepEFTScheduler,
     "ppo-predeploy": TrainablePredeployScheduler
 }

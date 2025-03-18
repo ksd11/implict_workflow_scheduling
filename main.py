@@ -55,26 +55,26 @@ def make_parser():
 # env = sim.LayerEdgeEnv()
 env = sim.LayerEdgeDynamicEnv(need_log=True)
 scheduler = {
-    "dep-down": {
+    "Dep-Down": {
         "edge_server_num": env.N,
         "layer_num": env.L
     }, 
-    "dep-wait": {
+    "Dep-Wait": {
         "edge_server_num": env.N,
         "layer_num": env.L
     }, 
-    "dep-eft": {
+    "Dep-Eft": {
         "edge_server_num": env.N,
         "layer_num": env.L
     }, 
-    "random": {
+    "Random": {
         "edge_server_num": env.N,
         "layer_num": env.L
     },
-    "dqn":{
+    "DQN":{
         "config_path": "config/dqn.yaml"
     },
-    "ppo":{
+    "PPO":{
         "config_path": "config/ppo.yaml"
     }, 
     # "xanadu": {
@@ -84,21 +84,21 @@ scheduler = {
     }
 
 colors = {
-        'random': '#2ca02c',   # 绿色
-        'dep-down': '#1f77b4', # 蓝色
-        'dep-eft': '#9467bd',  # 紫色
-        'dep-wait': '#8c564b',  # 棕色
-        'dqn': '#ff7f0e',      # 橙色
-        'ppo': '#d62728',      # 红色
+        'Random': '#2ca02c',   # 绿色
+        'Dep-Down': '#1f77b4', # 蓝色
+        'Dep-Eft': '#9467bd',  # 紫色
+        'Dep-Wait': '#8c564b',  # 棕色
+        'DQN': '#ff7f0e',      # 橙色
+        'PPO': '#d62728',      # 红色
     }
 
 markers = {
-    'dqn': 'o',      # 圆形
-    'ppo': 's',      # 方形
-    'random': '^',   # 上三角
-    'dep-down': 'D', # 菱形
-    'dep-eft': 'v',  # 下三角
-    'dep-wait': 'p'  # 五角星
+    'DQN': 'o',      # 圆形
+    'PPO': 's',      # 方形
+    'Random': '^',   # 上三角
+    'Dep-Down': 'D', # 菱形
+    'Dep-Eft': 'v',  # 下三角
+    'Dep-Wait': 'p'  # 五角星
 }
 
 def report(infos:dict, verbose = False):
@@ -176,7 +176,7 @@ def one_experiment(env, scheduler: Scheduler, seed = None, options = {'trace_len
 
 
 # 根据task_number变化的折线图
-def plot_results(results: dict, x_values: list, x_label: str = "请求数量", y_label="完成时间",fig_name = "comparison", algos = ["ppo", "dqn", "dep-wait", "dep-eft", "random", "dep-down"], threshold: float = 100000, legend_pos = "best"):
+def plot_results(results: dict, x_values: list, x_label: str = "请求数量", y_label="完成时间",fig_name = "comparison", algos = ["PPO", "DQN", "Dep-Wait", "Dep-Eft", "Random", "Dep-Down"], threshold: float = 100000, legend_pos = "best"):
     plt.figure(figsize=(8, 6))
 
     if algos is None:
@@ -304,7 +304,7 @@ def test0():
     # print(sum(info['all_request_process_time'].values()))
 
 
-def plot_cdf(results: dict, algos = ["ppo","dqn", "dep-wait", "dep-eft"]):
+def plot_cdf(results: dict, algos = ["PPO","DQN", "Dep-Wait", "Dep-Eft"]):
     plt.figure(figsize=(8, 6))
     
     for scheduler_name in algos:
@@ -317,7 +317,7 @@ def plot_cdf(results: dict, algos = ["ppo","dqn", "dep-wait", "dep-eft"]):
         p = np.arange(1, len(sorted_data) + 1) / len(sorted_data)
         
         # 绘制CDF线
-        plt.plot(sorted_data, p, label=scheduler_name, color=colors[scheduler_name])
+        plt.plot(sorted_data, p, label=scheduler_name, color=colors[scheduler_name], linewidth=2)
     
     # 设置图表属性
     plt.xlabel('完成时间')
@@ -335,7 +335,7 @@ def plot_cdf(results: dict, algos = ["ppo","dqn", "dep-wait", "dep-eft"]):
 def cdf(seed = 0, trait=True):
     if trait:
         results = {}
-        trace_len = 4000
+        trace_len = 2000
         for sched, info in scheduler.items():
             schedulerCls = scheduler_mapping[sched](**info)
             info = one_experiment(env=env, scheduler=schedulerCls, seed=seed, options={'trace_len': trace_len})
@@ -432,9 +432,9 @@ def all_metric_pic(seed = 0, trait = True):
 
     # plot_results(results["total_data_tranmission_time"], request_len_array, "总传输时间对比", "total_data_tranmission_time")
 
-    plot_results(results["total_request_wait_for_image"], request_len_array, y_label="总等待镜像时间", fig_name="total_request_wait_for_image", legend_pos="center left",algos = ["ppo","dqn", "dep-wait", "dep-eft"])
-    plot_results(results["total_request_wait_for_data"], request_len_array, y_label="总等待数据时间", fig_name="total_request_wait_for_data",algos = ["ppo","dqn", "dep-wait", "dep-eft"])
-    plot_results(results["total_request_wait_for_comp"], request_len_array, y_label="总等待计算时间", fig_name="total_request_wait_for_comp",legend_pos="center left",algos = ["ppo","dqn", "dep-wait", "dep-eft"])
+    plot_results(results["total_request_wait_for_image"], request_len_array, y_label="总等待镜像时间", fig_name="total_request_wait_for_image", legend_pos="center left",algos = ["PPO","DQN", "Dep-Wait", "Dep-Eft"])
+    plot_results(results["total_request_wait_for_data"], request_len_array, y_label="总等待数据时间", fig_name="total_request_wait_for_data",algos = ["PPO","DQN", "Dep-Wait", "Dep-Eft"])
+    plot_results(results["total_request_wait_for_comp"], request_len_array, y_label="总等待计算时间", fig_name="total_request_wait_for_comp",legend_pos="center left",algos = ["PPO","DQN", "Dep-Wait", "Dep-Eft"])
 
     # plot_results(results["pending_download_time"], request_len_array, "总等待下载时间对比")
 
@@ -472,7 +472,7 @@ def plot_machine_distribution(data: dict, title="机器分布"):
 def machine_distribution(seed=0, trait=True):
     if trait:
         results = {}
-        trace_len = 4000
+        trace_len = 2000
         for sched, info in scheduler.items():
             schedulerCls = scheduler_mapping[sched](**info)
             info = one_experiment(env=env, scheduler=schedulerCls, seed=seed, options={'trace_len': trace_len})
@@ -508,22 +508,26 @@ def loss_pic():
     
     ppo_df = pd.read_csv("__result__/ppo_loss.csv")
     dqn_df = pd.read_csv("__result__/dqn_loss.csv")
+
+    # 过滤数据
+    ppo_df = ppo_df[ppo_df['Value'] > -150000]
+    dqn_df = dqn_df[dqn_df['Value'] > -150000]
     
     # 3. 画PPO曲线
     plt.plot(ppo_df['Step'], ppo_df['Value'], 
             color='#ff7f0e',
             label='PPO',
-            linewidth=1)
+            linewidth=2)
    
     
     # 4. 画DQN曲线
     plt.plot(dqn_df['Step'], dqn_df['Value'],
             color='#1f77b4',
             label='DQN',
-            linewidth=1)
+            linewidth=2)
     
     # 5. 设置图表属性
-    plt.xlabel('训练步数')
+    plt.xlabel('采样步数')
     plt.ylabel('奖励')
     # plt.title('训练过程中的奖励变化')
     plt.grid(True, linestyle='--', alpha=0.7)
@@ -537,18 +541,18 @@ def plot_storage_comparison(results: dict, x_values: list, sched: str):
     
     # 为不同存储策略设置颜色和标记
     storage_colors = {
-        'fcfs': '#1f77b4',     # 蓝色
-        'lru': '#ff7f0e',      # 橙色
-        'popularity': '#2ca02c',# 绿色
-        'priority': '#d62728',   # 红色
+        'FCFS': '#1f77b4',     # 蓝色
+        'LRU': '#ff7f0e',      # 橙色
+        'Popularity': '#2ca02c',# 绿色
+        'Priority': '#d62728',   # 红色
         # 'prioritySmall': '#8c564b'   # 红色
     }
     
     storage_markers = {
-        'fcfs': 'o',      # 圆形
-        'lru': 's',       # 方形
-        'popularity': '^', # 三角形
-        'priority': 'D',   # 菱形
+        'FCFS': 'o',      # 圆形
+        'LRU': 's',       # 方形
+        'Popularity': '^', # 三角形
+        'Priority': 'D',   # 菱形
         # 'prioritysmall': 'p'   # 菱形
     }
     
@@ -557,7 +561,7 @@ def plot_storage_comparison(results: dict, x_values: list, sched: str):
         plt.plot(x_values, values,
                 marker=storage_markers.get(storage_name, 'o'),
                 color=storage_colors.get(storage_name, '#1f77b4'),
-                label=storage_name.upper(),
+                label=storage_name,
                 linewidth=2,
                 markersize=8)
     
@@ -572,9 +576,9 @@ def plot_storage_comparison(results: dict, x_values: list, sched: str):
 
 
 def different_expel_strategy_test(seed=0, trait = False, sched = "dep-eft", schedulerMapping = None):
-    storageMappling = {"fcfs": FCFSStorage, "lru":LRUStorage
-                  , "popularity": PopularityStorage
-                  , "priority": PriorityStorage}
+    storageMappling = {"FCFS": FCFSStorage, "LRU":LRUStorage
+                  , "Popularity": PopularityStorage
+                  , "Priority": PriorityStorage}
     
 
     request_len_array = [500,1000,1500,2000,2500,3000,3500,4000]
@@ -611,19 +615,19 @@ def different_expel_strategy_all_test(seed=0, trait=True):
 
     sched = "dqn"
     schedulerMapping = {
-        "fcfs": scheduler_mapping[sched](config_path="config/dqn.yaml"),
-        "lru": scheduler_mapping[sched](config_path="config/dqn.yaml"),
-        "popularity": scheduler_mapping[sched](config_path="config/dqn.yaml"),
-        "priority": scheduler_mapping[sched](config_path="config/dqn.yaml")
+        "FCFS": scheduler_mapping[sched](config_path="config/dqn.yaml"),
+        "LRU": scheduler_mapping[sched](config_path="config/dqn.yaml"),
+        "Popularity": scheduler_mapping[sched](config_path="config/dqn.yaml"),
+        "Priority": scheduler_mapping[sched](config_path="config/dqn.yaml")
     }
 
     # sched = "dep-eft"
     # sched = "dep-wait"
     # schedulerMapping = {
-    #     "fcfs": scheduler_mapping[sched](**scheduler[sched]),
-    #     "lru": scheduler_mapping[sched](**scheduler[sched]),
-    #     "popularity": scheduler_mapping[sched](**scheduler[sched]),
-    #     "priority": scheduler_mapping[sched](**scheduler[sched]),
+    #     "FCFS": scheduler_mapping[sched](**scheduler[sched]),
+    #     "LRU": scheduler_mapping[sched](**scheduler[sched]),
+    #     "Popularity": scheduler_mapping[sched](**scheduler[sched]),
+    #     "Priority": scheduler_mapping[sched](**scheduler[sched]),
     # }
 
     # for sched in scheds:
@@ -683,9 +687,9 @@ def predeploy_test(seed=0, trait = False):
     #     sched+"-3": (sim.LayerEdgeDynamicEnv(need_log=True, is_predeploy=True, predeploy_degree=3), schedulerCls)
     # }
 
-    sched = "ppo"
-    ppo_origin = scheduler_mapping["ppo"](config_path="config/ppo-100.yaml")
-    ppo_trained = scheduler_mapping["ppo"](config_path="config/ppo-100-predeploy-1.yaml")
+    sched = "PPO"
+    ppo_origin = scheduler_mapping["PPO"](config_path="config/ppo-100.yaml")
+    ppo_trained = scheduler_mapping["PPO"](config_path="config/ppo-100-predeploy-1.yaml")
     # dqn2 = scheduler_mapping["dqn"](config_path="config/dqn-deploy.yaml")
     envs = {
         sched+"-0": (sim.LayerEdgeDynamicEnv(need_log=True, is_predeploy=False), ppo_origin),
@@ -751,12 +755,12 @@ if __name__ == "__main__":
     # test0()
     # xanadu_different_predeploy_degree()
 
-    # all_metric_pic(trait=False)    
-    # cdf(trait=True)
+    # all_metric_pic(trait=False)
+    cdf(trait=True)
     # machine_distribution(trait=True)
     # loss_pic()
 
-    different_expel_strategy_all_test(trait=True)
+    # different_expel_strategy_all_test(trait=True)
 
     # predeploy_test(trait=True)
 
