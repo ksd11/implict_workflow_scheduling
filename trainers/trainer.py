@@ -6,6 +6,7 @@ from stable_baselines3.common.monitor import Monitor
 from stable_baselines3.common.vec_env import DummyVecEnv, SubprocVecEnv
 from .network.layer_dependent_dqn import LayerDependentExtractor
 import gymnasium as gym
+from sim.storage import Storage,FCFSStorage,LRUStorage,PopularityStorage, PriorityStorage
 
 CfgType = dict[str, Any]
 

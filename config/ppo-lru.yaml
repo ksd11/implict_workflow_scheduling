@@ -2,7 +2,8 @@ agent:
 trainer:
   trainer_cls: 'PPO'
   policy: "MlpPolicy"
-  learning_rate: 3e-4
+  learning_rate: 1e-3
+  learning_rate_schedule: True
   n_steps: 1024
   batch_size: 8192 # env_size * n_steps
   n_epochs: 16
@@ -13,16 +14,12 @@ trainer:
   gamma: 0.95
   verbose: 0 
   tensorboard_log: "./tmp/tensorboard/"
-  total_timesteps: 5e6
+  total_timesteps: 1e7
   progress_bar: True
   device: "cpu"
   # 3. PPO特有参数
   clip_range: 0.3        # 限制策略更新步长
-  ent_coef: 0.01        # 提高探索度
-  # gae_lambda: 0.95       # GAE参数
-  # vf_coef: 0.5          # 值函数系数
-  # max_grad_norm: 0.5    # 梯度裁剪
-  # target_kl: 0.01       # KL散度限制
+  ent_coef: 0.05        # 提高探索度
 env:
   id: "LayerEdgeDynamicEnv-v0"
   storage_type: "LRUStorage"
