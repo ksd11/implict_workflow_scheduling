@@ -8,7 +8,7 @@ class Scheduler(ABC):
     """Interface for all schedulers"""
 
     name: str
-    env_wrapper_cls: type[Wrapper] | None
+    env_wrapper_cls: type[Wrapper]
 
     @abstractmethod
     def schedule(self, obs: list) -> tuple[int, dict]:

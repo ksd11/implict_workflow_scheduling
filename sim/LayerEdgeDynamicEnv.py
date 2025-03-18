@@ -12,7 +12,7 @@ import networkx as nx
 class LayerEdgeDynamicEnv(gym.Env):
     def __init__(self, render_mode="human"
                  , need_log = False
-                 , storage_type: Type[Storage] = PriorityPlusStorage
+                 , storage_type: Type[Storage] = PriorityStorage
                  , is_predeploy: bool = False
                  , predeploy_degree: int = 1
                  , prefix=None

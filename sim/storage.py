@@ -151,7 +151,7 @@ class CacheItem:
         return self.timestamp < other.timestamp
 
 
-class PriorityStorage(Storage):
+class PopularityStorage(Storage):
     def __init__(self, size, gamma = 0.95):
         super().__init__(size)
         self.buffer = {}           # key -> CacheItem
@@ -209,7 +209,7 @@ class PriorityStorage(Storage):
 
 
 @dataclass
-class CacheItemPlus:
+class CacheItemBig:
     priority: int
     timestamp: int
     key: Any
@@ -226,11 +226,36 @@ class CacheItemPlus:
         # 优先级一样则先进先出
         return self.timestamp < other.timestamp
 
-class PriorityPlusStorage(PriorityStorage):
+class PriorityBigStorage(PopularityStorage):
     def __init__(self, size, gamma = 0.95):
-        super(PriorityPlusStorage, self).__init__(size, gamma)
-        self.cacheItem = CacheItemPlus
+        super(PriorityBigStorage, self).__init__(size, gamma)
+        self.cacheItem = CacheItemBig
 
+
+@dataclass
+class CacheItemTimestamp:
+    priority: int
+    timestamp: int
+    key: Any
+    value: Any
+    
+    def __lt__(self, other):
+        # 优先级： 命中次数 * layer_size
+        new_timestamp = max(self.timestamp, other.timestamp)
+
+        selfPriority = self.priority * (self.timestamp / new_timestamp) 
+        otherPrioruty = other.priority * (other.timestamp / new_timestamp)
+
+        if selfPriority != otherPrioruty:
+            return selfPriority < otherPrioruty
+        
+        # 优先级一样则先进先出
+        return self.timestamp < other.timestamp
+
+class PriorityStorage(PopularityStorage):
+    def __init__(self, size, gamma = 0.95):
+        super(PriorityStorage, self).__init__(size, gamma)
+        self.cacheItem = CacheItemTimestamp
 
 ######### Test ##########
 
@@ -283,7 +308,7 @@ class TestLRUStorage(unittest.TestCase):
 class TestPriorityStorage(unittest.TestCase):
     def setUp(self):
         self.size = 5
-        self.storage = PriorityStorage(self.size)
+        self.storage = PopularityStorage(self.size)
         
     def test_basic_operations(self):
         # 测试添加和获取

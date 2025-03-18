@@ -6,7 +6,7 @@ import sim
 from schedulers import scheduler_mapping, Scheduler
 import numpy as np
 import pandas as pd
-from sim.storage import FCFSStorage, LRUStorage, PriorityStorage, PriorityPlusStorage
+from sim.storage import FCFSStorage, LRUStorage, PopularityStorage, PriorityBigStorage, PriorityStorage
 
 # 防止中文乱码
 import matplotlib.pyplot as plt
@@ -540,14 +540,16 @@ def plot_storage_comparison(results: dict, x_values: list, sched: str):
         'fcfs': '#1f77b4',     # 蓝色
         'lru': '#ff7f0e',      # 橙色
         'popularity': '#2ca02c',# 绿色
-        'priority': '#d62728'   # 红色
+        'priority': '#d62728',   # 红色
+        # 'prioritySmall': '#8c564b'   # 红色
     }
     
     storage_markers = {
         'fcfs': 'o',      # 圆形
         'lru': 's',       # 方形
         'popularity': '^', # 三角形
-        'priority': 'D'   # 菱形
+        'priority': 'D',   # 菱形
+        # 'prioritysmall': 'p'   # 菱形
     }
     
     # 画出每个存储策略的曲线
@@ -570,15 +572,17 @@ def plot_storage_comparison(results: dict, x_values: list, sched: str):
 
 
 def different_expel_strategy_test(seed=0, trait = False, sched = "dep-eft", schedulerMapping = None):
-    storageCls = {"fcfs": FCFSStorage, "lru":LRUStorage, "popularity": PriorityStorage, "priority": PriorityPlusStorage}
+    storageMappling = {"fcfs": FCFSStorage, "lru":LRUStorage
+                  , "popularity": PopularityStorage
+                  , "priority": PriorityStorage}
     
 
     request_len_array = [500,1000,1500,2000,2500,3000,3500,4000]
 
     if trait:
         results = defaultdict(lambda: defaultdict(list))
-        for name, storageCls in storageCls.items():
-            schedulerCls = schedulerMapping[name]
+        for name, schedulerCls in schedulerMapping.items():
+            storageCls = storageMappling[name]
             for trace_len in request_len_array:
                 env = sim.LayerEdgeDynamicEnv(need_log=True, storage_type=storageCls)
                 info = one_experiment(env=env, scheduler=schedulerCls, seed=seed, options={'trace_len': trace_len})
@@ -605,22 +609,22 @@ def different_expel_strategy_test(seed=0, trait = False, sched = "dep-eft", sche
 def different_expel_strategy_all_test(seed=0, trait=True):
     # scheds = ["dep-eft", "dep-wait"]
 
-    sched = "dqn"
-    schedulerMapping = {
-        "fcfs": scheduler_mapping[sched](config_path="config/dqn.yaml"),
-        "lru": scheduler_mapping[sched](config_path="config/dqn.yaml"),
-        "popularity": scheduler_mapping[sched](config_path="config/dqn.yaml"),
-        "priority": scheduler_mapping[sched](config_path="config/dqn.yaml")
-    }
-
-    # sched = "dep-eft"
-    # sched = "dep-wait"
+    # sched = "dqn"
     # schedulerMapping = {
-    #     "fcfs": scheduler_mapping[sched](**scheduler[sched]),
-    #     "lru": scheduler_mapping[sched](**scheduler[sched]),
-    #     "popularity": scheduler_mapping[sched](**scheduler[sched]),
-    #     "priority": scheduler_mapping[sched](**scheduler[sched])
+    #     "fcfs": scheduler_mapping[sched](config_path="config/dqn.yaml"),
+    #     "lru": scheduler_mapping[sched](config_path="config/dqn.yaml"),
+    #     "popularity": scheduler_mapping[sched](config_path="config/dqn.yaml"),
+    #     "priority": scheduler_mapping[sched](config_path="config/dqn.yaml")
     # }
+
+    sched = "dep-eft"
+    # sched = "dep-wait"
+    schedulerMapping = {
+        "fcfs": scheduler_mapping[sched](**scheduler[sched]),
+        "lru": scheduler_mapping[sched](**scheduler[sched]),
+        "popularity": scheduler_mapping[sched](**scheduler[sched]),
+        "priority": scheduler_mapping[sched](**scheduler[sched]),
+    }
 
     # for sched in scheds:
     different_expel_strategy_test(seed=seed, trait = trait, sched=sched, schedulerMapping=schedulerMapping)
@@ -747,8 +751,8 @@ if __name__ == "__main__":
     # test0()
     # xanadu_different_predeploy_degree()
 
-    # all_metric_pic(trait=True)    
-    # cdf(trait=False)
+    # all_metric_pic(trait=False)    
+    # cdf(trait=True)
     # machine_distribution(trait=True)
     # loss_pic()
 

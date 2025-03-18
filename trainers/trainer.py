@@ -6,7 +6,6 @@ from stable_baselines3.common.monitor import Monitor
 from stable_baselines3.common.vec_env import DummyVecEnv, SubprocVecEnv
 from .network.layer_dependent_dqn import LayerDependentExtractor
 import gymnasium as gym
-from sim.storage import FCFSStorage, LRUStorage, PriorityStorage, PriorityPlusStorage
 
 CfgType = dict[str, Any]
 
@@ -16,6 +15,7 @@ from stable_baselines3.common.callbacks import EvalCallback, BaseCallback,StopTr
 from stable_baselines3.common.vec_env import DummyVecEnv, SubprocVecEnv, VecNormalize
 import torch
 import numpy as np
+from stable_baselines3.common.utils import get_linear_fn
 
 class TensorboardCallback(BaseCallback):
     def __init__(self, verbose=0):
@@ -140,6 +140,20 @@ class Trainer(ABC):
             glob = globals()
             assert extractor in glob, f"'{extractor}' is not a valid extractor."
             train_cfg["policy_kwargs"]["features_extractor_class"] = glob[extractor]
+
+        if "learning_rate_schedule" in train_cfg and train_cfg["learning_rate_schedule"]:
+            # 1. 创建学习率衰减函数
+            initial_lr = train_cfg.get("learning_rate", 1e-3)
+            end_lr = initial_lr * 0.1  # 最终学习率为初始值的10%
+            
+            # 线性衰减
+            self.lr_schedule = get_linear_fn(
+                initial_lr,  # 初始学习率
+                end_lr,     # 最终学习率
+                1           # 总进度为1
+            )
+            # 2. 更新训练配置
+            train_cfg["learning_rate"] = self.lr_schedule
 
         for param in params:
             self._set(train_cfg, model_kargs, param)

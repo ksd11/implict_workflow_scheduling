@@ -1,7 +1,7 @@
 import math
 from typing import Tuple
 from data.data_generate import DataGenerator
-from .storage import Storage,FCFSStorage,LRUStorage,PriorityPlusStorage,PriorityStorage
+from .storage import Storage,FCFSStorage,LRUStorage,PopularityStorage, PriorityBigStorage, PriorityStorage
 
 import heapq
 from typing import Any, Optional

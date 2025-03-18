@@ -9,8 +9,6 @@ from .network.layer_dependent_ppo import CustomNetwork
 from .network.custom_cnn import CustomCNN
 from sim.wrapper import MyWrapper
 from .network.fm_net import FMNetwork
-from stable_baselines3.common.utils import get_linear_fn
-
 
 # env_name = "CartPole-v0"
 # env = gym.make(env_name)
@@ -44,18 +42,6 @@ class PPO(Trainer):
             , "target_kl"
         ]
         # train_cfg["policy"] = CustomNetwork
-        # 1. 创建学习率衰减函数
-        # initial_lr = train_cfg.get("learning_rate", 1e-3)
-        # end_lr = initial_lr * 0.1  # 最终学习率为初始值的10%
-        
-        # # 线性衰减
-        # self.lr_schedule = get_linear_fn(
-        #     initial_lr,  # 初始学习率
-        #     end_lr,     # 最终学习率
-        #     1           # 总进度为1
-        # )
-        # # 2. 更新训练配置
-        # train_cfg["learning_rate"] = self.lr_schedule
 
         self.model = self._init_model(model=ST_PPO, train_cfg=train_cfg, params=params)
 
