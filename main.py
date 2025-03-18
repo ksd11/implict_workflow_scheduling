@@ -611,27 +611,35 @@ def different_expel_strategy_test(seed=0, trait = False, sched = "dep-eft", sche
     plot_storage_comparison(results["total_request_process_time"], request_len_array, sched=sched)
 
 def different_expel_strategy_all_test(seed=0, trait=True):
-    # scheds = ["dep-eft", "dep-wait"]
-
-    sched = "dqn"
-    schedulerMapping = {
-        "FCFS": scheduler_mapping[sched](config_path="config/dqn.yaml"),
-        "LRU": scheduler_mapping[sched](config_path="config/dqn.yaml"),
-        "Popularity": scheduler_mapping[sched](config_path="config/dqn.yaml"),
-        "Priority": scheduler_mapping[sched](config_path="config/dqn.yaml")
+    scheds = {
+        "DQN": {
+            "FCFS": scheduler_mapping["DQN"](config_path="config/dqn.yaml"),
+            "LRU": scheduler_mapping["DQN"](config_path="config/dqn.yaml"),
+            "Popularity": scheduler_mapping["DQN"](config_path="config/dqn.yaml"),
+            "Priority": scheduler_mapping["DQN"](config_path="config/dqn.yaml")
+        },
+        "PPO": {
+            "FCFS": scheduler_mapping["PPO"](config_path="config/ppo.yaml"),
+            "LRU": scheduler_mapping["PPO"](config_path="config/ppo.yaml"),
+            "Popularity": scheduler_mapping["PPO"](config_path="config/ppo.yaml"),
+            "Priority": scheduler_mapping["PPO"](config_path="config/ppo.yaml")
+        },
+        "Dep-Eft": {
+                "FCFS": scheduler_mapping["Dep-Eft"](**scheduler["Dep-Eft"]),
+                "LRU": scheduler_mapping["Dep-Eft"](**scheduler["Dep-Eft"]),
+                "Popularity": scheduler_mapping["Dep-Eft"](**scheduler["Dep-Eft"]),
+                "Priority": scheduler_mapping["Dep-Eft"](**scheduler["Dep-Eft"]),
+        },
+        "Dep-Wait": {
+            "FCFS": scheduler_mapping["Dep-Wait"](**scheduler["Dep-Wait"]),
+            "LRU": scheduler_mapping["Dep-Wait"](**scheduler["Dep-Wait"]),
+            "Popularity": scheduler_mapping["Dep-Wait"](**scheduler["Dep-Wait"]),
+            "Priority": scheduler_mapping["Dep-Wait"](**scheduler["Dep-Wait"]),
+        }
     }
 
-    # sched = "dep-eft"
-    # sched = "dep-wait"
-    # schedulerMapping = {
-    #     "FCFS": scheduler_mapping[sched](**scheduler[sched]),
-    #     "LRU": scheduler_mapping[sched](**scheduler[sched]),
-    #     "Popularity": scheduler_mapping[sched](**scheduler[sched]),
-    #     "Priority": scheduler_mapping[sched](**scheduler[sched]),
-    # }
-
-    # for sched in scheds:
-    different_expel_strategy_test(seed=seed, trait = trait, sched=sched, schedulerMapping=schedulerMapping)
+    for sched,schedulerMapping in scheds.items():
+        different_expel_strategy_test(seed=seed, trait = trait, sched=sched, schedulerMapping=schedulerMapping)
 
 
 def plot_predeploy_comparison(results: dict, x_values: list, sched: str):
@@ -756,11 +764,11 @@ if __name__ == "__main__":
     # xanadu_different_predeploy_degree()
 
     # all_metric_pic(trait=False)
-    cdf(trait=True)
+    # cdf(trait=True)
     # machine_distribution(trait=True)
     # loss_pic()
 
-    # different_expel_strategy_all_test(trait=True)
+    different_expel_strategy_all_test(trait=True)
 
     # predeploy_test(trait=True)
 
