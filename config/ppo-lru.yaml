@@ -9,8 +9,8 @@ trainer:
   n_epochs: 16
   policy_kwargs: 
     net_arch: 
-      pi: [512, 256, 128]
-      vf: [512, 256, 128]
+      pi: [256, 128, 64]
+      vf: [256, 128, 64]
   gamma: 0.95
   verbose: 0 
   tensorboard_log: "./tmp/tensorboard/"

@@ -612,30 +612,30 @@ def different_expel_strategy_test(seed=0, trait = False, sched = "dep-eft", sche
 
 def different_expel_strategy_all_test(seed=0, trait=True):
     scheds = {
-        "DQN": {
-            "FCFS": scheduler_mapping["DQN"](config_path="config/dqn.yaml"),
-            "LRU": scheduler_mapping["DQN"](config_path="config/dqn.yaml"),
-            "Popularity": scheduler_mapping["DQN"](config_path="config/dqn.yaml"),
-            "Priority": scheduler_mapping["DQN"](config_path="config/dqn.yaml")
-        },
+        # "DQN": {
+        #     "FCFS": scheduler_mapping["DQN"](config_path="config/dqn.yaml"),
+        #     "LRU": scheduler_mapping["DQN"](config_path="config/dqn.yaml"),
+        #     "Popularity": scheduler_mapping["DQN"](config_path="config/dqn.yaml"),
+        #     "Priority": scheduler_mapping["DQN"](config_path="config/dqn.yaml")
+        # },
         "PPO": {
-            "FCFS": scheduler_mapping["PPO"](config_path="config/ppo.yaml"),
-            "LRU": scheduler_mapping["PPO"](config_path="config/ppo.yaml"),
-            "Popularity": scheduler_mapping["PPO"](config_path="config/ppo.yaml"),
+            "FCFS": scheduler_mapping["PPO"](config_path="config/ppo-fcfs.yaml"),
+            "LRU": scheduler_mapping["PPO"](config_path="config/ppo-lru.yaml"),
+            "Popularity": scheduler_mapping["PPO"](config_path="config/ppo-popularity.yaml"),
             "Priority": scheduler_mapping["PPO"](config_path="config/ppo.yaml")
         },
-        "Dep-Eft": {
-                "FCFS": scheduler_mapping["Dep-Eft"](**scheduler["Dep-Eft"]),
-                "LRU": scheduler_mapping["Dep-Eft"](**scheduler["Dep-Eft"]),
-                "Popularity": scheduler_mapping["Dep-Eft"](**scheduler["Dep-Eft"]),
-                "Priority": scheduler_mapping["Dep-Eft"](**scheduler["Dep-Eft"]),
-        },
-        "Dep-Wait": {
-            "FCFS": scheduler_mapping["Dep-Wait"](**scheduler["Dep-Wait"]),
-            "LRU": scheduler_mapping["Dep-Wait"](**scheduler["Dep-Wait"]),
-            "Popularity": scheduler_mapping["Dep-Wait"](**scheduler["Dep-Wait"]),
-            "Priority": scheduler_mapping["Dep-Wait"](**scheduler["Dep-Wait"]),
-        }
+        # "Dep-Eft": {
+        #         "FCFS": scheduler_mapping["Dep-Eft"](**scheduler["Dep-Eft"]),
+        #         "LRU": scheduler_mapping["Dep-Eft"](**scheduler["Dep-Eft"]),
+        #         "Popularity": scheduler_mapping["Dep-Eft"](**scheduler["Dep-Eft"]),
+        #         "Priority": scheduler_mapping["Dep-Eft"](**scheduler["Dep-Eft"]),
+        # },
+        # "Dep-Wait": {
+        #     "FCFS": scheduler_mapping["Dep-Wait"](**scheduler["Dep-Wait"]),
+        #     "LRU": scheduler_mapping["Dep-Wait"](**scheduler["Dep-Wait"]),
+        #     "Popularity": scheduler_mapping["Dep-Wait"](**scheduler["Dep-Wait"]),
+        #     "Priority": scheduler_mapping["Dep-Wait"](**scheduler["Dep-Wait"]),
+        # }
     }
 
     for sched,schedulerMapping in scheds.items():
@@ -768,8 +768,8 @@ if __name__ == "__main__":
     # machine_distribution(trait=True)
     # loss_pic()
 
-    # different_expel_strategy_all_test(trait=True)
+    different_expel_strategy_all_test(trait=True)
 
-    predeploy_test(trait=True)
+    # predeploy_test(trait=True)
 
     # difference()

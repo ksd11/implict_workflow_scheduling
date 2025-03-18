@@ -17,5 +17,5 @@ trainer:
     net_arch: [256, 128, 64]
 env:
   id: "LayerEdgeDynamicEnv-v0"
-  storage_type: "PriorityStorage"
+  storage_type: "PopularityStorage"
   prefix: "popularity"
