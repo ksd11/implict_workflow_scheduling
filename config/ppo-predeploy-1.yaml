@@ -19,9 +19,9 @@ trainer:
   device: "cpu"
   # 3. PPO特有参数
   clip_range: 0.3        # 限制策略更新步长
-  ent_coef: 0.05        # 提高探索度
+  ent_coef: 0.01        # 提高探索度
 env:
   id: "LayerEdgeDynamicEnv-v0"
   is_predeploy: True       # 是否预部署
   predeploy_degree: 1      # 提前预部署几个？
-  prefix: "interval-100-predeploy-1"
+  prefix: "predeploy-1"
