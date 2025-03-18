@@ -4,7 +4,7 @@ from scipy.stats import zipf, expon
 import networkx as nx
 import os
 from .util import visualize_dag
-
+from .config import global_config
 
 '''
 DataGenerator
@@ -382,7 +382,7 @@ class DataGenerator:
 
         return self
     
-    def getNewTrace(self, seed, trace_len = 100, mean_interarrival = 1):
+    def getNewTrace(self, seed, trace_len = 100, mean_interarrival = global_config.mean_interarrival):
         """生成新的请求序列"""
         np.random.seed(seed)
         

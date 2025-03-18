@@ -683,7 +683,7 @@ def predeploy_test(seed=0, trait = False):
     request_len_array = [500,1000,1500,2000,2500,3000,3500,4000]
     # request_len_array = [100,200,300,400,500,600,700,800]
     
-    # sched = "dep-eft"
+    # sched = "Dep-Eft"
     # schedulerCls = scheduler_mapping[sched](**scheduler[sched])
     # envs = {
     #     sched+"-0": (sim.LayerEdgeDynamicEnv(need_log=True, is_predeploy=False), schedulerCls),
@@ -696,15 +696,15 @@ def predeploy_test(seed=0, trait = False):
     # }
 
     sched = "PPO"
-    ppo_origin = scheduler_mapping["PPO"](config_path="config/ppo-100.yaml")
-    ppo_trained = scheduler_mapping["PPO"](config_path="config/ppo-100-predeploy-1.yaml")
-    # dqn2 = scheduler_mapping["dqn"](config_path="config/dqn-deploy.yaml")
+    # ppo_origin = scheduler_mapping["PPO"](config_path="config/ppo-100.yaml")
+    # ppo_trained = scheduler_mapping["PPO"](config_path="config/ppo-100-predeploy-1.yaml")
+    ppo_origin = scheduler_mapping[sched](config_path="config/ppo.yaml")
     envs = {
         sched+"-0": (sim.LayerEdgeDynamicEnv(need_log=True, is_predeploy=False), ppo_origin),
 
         sched+"-1": (sim.LayerEdgeDynamicEnv(need_log=True, is_predeploy=True, predeploy_degree=1), ppo_origin),
 
-         sched+"(trained)-1": (sim.LayerEdgeDynamicEnv(need_log=True, is_predeploy=True, predeploy_degree=1), ppo_trained),
+        #  sched+"(trained)-1": (sim.LayerEdgeDynamicEnv(need_log=True, is_predeploy=True, predeploy_degree=1), ppo_trained),
     }
 
     if trait:
@@ -768,8 +768,8 @@ if __name__ == "__main__":
     # machine_distribution(trait=True)
     # loss_pic()
 
-    different_expel_strategy_all_test(trait=True)
+    # different_expel_strategy_all_test(trait=True)
 
-    # predeploy_test(trait=True)
+    predeploy_test(trait=True)
 
     # difference()

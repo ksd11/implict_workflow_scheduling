@@ -43,3 +43,5 @@ class Config:
 
     def __str__(self):
         return str(self._config)
+    
+global_config = Config()
