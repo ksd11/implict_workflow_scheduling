@@ -636,18 +636,18 @@ def different_expel_strategy_all_test(seed=0, trait=True):
         #     "Popularity": scheduler_mapping["Dep-Wait"](**scheduler["Dep-Wait"]),
         #     "Priority": scheduler_mapping["Dep-Wait"](**scheduler["Dep-Wait"]),
         # },
-        # "PPO": {
-        #     "FCFS": scheduler_mapping["PPO"](config_path="config/ppo-fcfs.yaml"),
-        #     "LRU": scheduler_mapping["PPO"](config_path="config/ppo-lru.yaml"),
-        #     "Popularity": scheduler_mapping["PPO"](config_path="config/ppo-popularity.yaml"),
-        #     "Priority": scheduler_mapping["PPO"](config_path="config/ppo.yaml")
-        # },
-        "DQN": {
-            "FCFS": scheduler_mapping["DQN"](config_path="config/dqn-fcfs.yaml"),
-            "LRU": scheduler_mapping["DQN"](config_path="config/dqn-lru.yaml"),
-            "Popularity": scheduler_mapping["DQN"](config_path="config/dqn-popularity.yaml"),
-            "Priority": scheduler_mapping["DQN"](config_path="config/dqn.yaml")
+        "PPO": {
+            "FCFS": scheduler_mapping["PPO"](config_path="config/ppo-fcfs.yaml"),
+            "LRU": scheduler_mapping["PPO"](config_path="config/ppo-lru.yaml"),
+            "Popularity": scheduler_mapping["PPO"](config_path="config/ppo-popularity.yaml"),
+            "Priority": scheduler_mapping["PPO"](config_path="config/ppo.yaml")
         },
+        # "DQN": {
+        #     "FCFS": scheduler_mapping["DQN"](config_path="config/dqn-fcfs.yaml"),
+        #     "LRU": scheduler_mapping["DQN"](config_path="config/dqn-lru.yaml"),
+        #     "Popularity": scheduler_mapping["DQN"](config_path="config/dqn-popularity.yaml"),
+        #     "Priority": scheduler_mapping["DQN"](config_path="config/dqn.yaml")
+        # },
     }
 
     for sched,schedulerMapping in scheds.items():
@@ -708,15 +708,14 @@ def predeploy_test(seed=0, trait = False):
     # }
 
     sched = "PPO"
-    # ppo_origin = scheduler_mapping["PPO"](config_path="config/ppo-100.yaml")
-    # ppo_trained = scheduler_mapping["PPO"](config_path="config/ppo-100-predeploy-1.yaml")
     ppo_origin = scheduler_mapping[sched](config_path="config/ppo.yaml")
+    ppo_trained = scheduler_mapping["PPO"](config_path="config/ppo-predeploy-1.yaml")
     envs = {
         sched+"-0": (sim.LayerEdgeDynamicEnv(need_log=True, is_predeploy=False), ppo_origin),
 
         sched+"-1": (sim.LayerEdgeDynamicEnv(need_log=True, is_predeploy=True, predeploy_degree=1), ppo_origin),
 
-        #  sched+"(trained)-1": (sim.LayerEdgeDynamicEnv(need_log=True, is_predeploy=True, predeploy_degree=1), ppo_trained),
+        sched+"(trained)-1": (sim.LayerEdgeDynamicEnv(need_log=True, is_predeploy=True, predeploy_degree=1), ppo_trained),
     }
 
     if trait:
