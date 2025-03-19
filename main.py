@@ -661,15 +661,15 @@ def plot_predeploy_comparison(results: dict, x_values: list, sched: str):
     colors = [
         '#1f77b4',     # 蓝色
         '#ff7f0e',     # 橙色
+        '#d62728',      # 红色
         '#2ca02c',     # 绿色
-        '#d62728'      # 红色
     ]
     
     markers = [
         'o',      # 圆形
         's',       # 方形
+        'D',   # 菱形
         '^', # 三角形
-        'D'   # 菱形
     ]
     
     # 画出每个存储策略的曲线
@@ -713,14 +713,14 @@ def predeploy_test(seed=0, trait = False):
     envs = {
         sched+"-0": (sim.LayerEdgeDynamicEnv(need_log=True, is_predeploy=False), ppo_origin),
 
-        sched+"-1": (sim.LayerEdgeDynamicEnv(need_log=True, is_predeploy=True, predeploy_degree=1), ppo_origin),
+        # sched+"-1": (sim.LayerEdgeDynamicEnv(need_log=True, is_predeploy=True, predeploy_degree=1), ppo_origin),
 
         sched+"(trained)-1": (sim.LayerEdgeDynamicEnv(need_log=True, is_predeploy=True, predeploy_degree=1), ppo_trained),
     }
 
     if trait:
         results = defaultdict(lambda: defaultdict(list))
-        # with open(f'__result__/{sched}-predeploy.json', 'w') as f:
+        # with open(f'__result__/{sched}-predeploy.json', 'r') as f:
         #     results = json.load(f)
 
         # for k in results:
