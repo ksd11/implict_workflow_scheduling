@@ -720,6 +720,12 @@ def predeploy_test(seed=0, trait = False):
 
     if trait:
         results = defaultdict(lambda: defaultdict(list))
+        # with open(f'__result__/{sched}-predeploy.json', 'w') as f:
+        #     results = json.load(f)
+
+        # for k in results:
+        #     results[k]["PPO(trained)-1"] = []
+
         for name, (env, schedulerCls) in envs.items():
             for trace_len in request_len_array:
                 info = one_experiment(env=env, scheduler=schedulerCls, seed=seed, options={'trace_len': trace_len})
@@ -731,9 +737,9 @@ def predeploy_test(seed=0, trait = False):
                 print(f"total_request_process_time: {results['total_request_process_time'][name][-1]}")
                 print()
 
-                # 保存为JSON文件
-                with open(f'__result__/{sched}-predeploy.json', 'w') as f:
-                    json.dump(results, f, indent=4)
+        # 保存为JSON文件
+        with open(f'__result__/{sched}-predeploy.json', 'w') as f:
+            json.dump(results, f, indent=4)
 
     else:
         with open(f'__result__/{sched}-predeploy.json', 'r') as f:

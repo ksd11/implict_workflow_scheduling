@@ -14,8 +14,8 @@ def make_trainer(cfg, load=False):
         agent_cfg=cfg["agent"], env_cfg=cfg["env"], train_cfg=cfg["trainer"]
     )
     if load:
-        path = model_path(cfg['trainer']['trainer_cls'], cfg['env']['id'])
-        trainer.load(path, env=trainer.env, device=trainer_cls["device"])
+        path = trainer.get_model_path()
+        trainer.load(path, env=trainer.env, device=cfg["trainer"]["device"])
     return trainer
 
 def model_path(model, env):
