@@ -16,13 +16,13 @@ plt.rcParams['axes.unicode_minus']=False # 正确显示负号，防止变成方�
 
 # 1. 全局字体大小设置
 plt.rcParams.update({
-    'font.size': 16,              # 基础字体大小
-    'axes.labelsize': 16,         # 坐标轴标签字体大小
-    'axes.titlesize': 16,         # 标题字体大小
-    'xtick.labelsize': 14,        # x轴刻度标签字体大小
-    'ytick.labelsize': 14,        # y轴刻度标签字体大小
-    'legend.fontsize': 16,        # 图例字体大小
-    'figure.titlesize': 18        # 图表标题字体大小
+    'font.size': 24,              # 基础字体大小
+    'axes.labelsize': 24,         # 坐标轴标签字体大小
+    'axes.titlesize': 24,         # 标题字体大小
+    'xtick.labelsize': 22,        # x轴刻度标签字体大小
+    'ytick.labelsize': 22,        # y轴刻度标签字体大小
+    'legend.fontsize': 24,        # 图例字体大小
+    'figure.titlesize': 26        # 图表标题字体大小
 })
     
 
@@ -322,12 +322,12 @@ def plot_cdf(results: dict, algos = ["PPO","DQN", "Dep-Wait", "Dep-Eft"]):
     # 设置图表属性
     plt.xlabel('完成时间')
     plt.ylabel('累积概率')
-    plt.title('不同调度策略的请求完成时间CDF对比')
+    # plt.title('不同调度策略的请求完成时间CDF对比')
     plt.grid(True, linestyle='--', alpha=0.7)
     plt.legend()
     
     # 保存图表
-    plt.savefig('cdf.pdf')
+    plt.savefig('cdf.pdf',bbox_inches='tight')
     plt.close()
 
     
@@ -432,9 +432,9 @@ def all_metric_pic(seed = 0, trait = True):
 
     # plot_results(results["total_data_tranmission_time"], request_len_array, "总传输时间对比", "total_data_tranmission_time")
 
-    plot_results(results["total_request_wait_for_image"], request_len_array, y_label="总等待镜像时间", fig_name="total_request_wait_for_image", legend_pos="center left",algos = ["PPO","DQN", "Dep-Wait", "Dep-Eft"])
+    plot_results(results["total_request_wait_for_image"], request_len_array, y_label="总等待镜像时间", fig_name="total_request_wait_for_image",algos = ["PPO","DQN", "Dep-Wait", "Dep-Eft"])
     plot_results(results["total_request_wait_for_data"], request_len_array, y_label="总等待数据时间", fig_name="total_request_wait_for_data",algos = ["PPO","DQN", "Dep-Wait", "Dep-Eft"])
-    plot_results(results["total_request_wait_for_comp"], request_len_array, y_label="总等待计算时间", fig_name="total_request_wait_for_comp",legend_pos="center left",algos = ["PPO","DQN", "Dep-Wait", "Dep-Eft"])
+    plot_results(results["total_request_wait_for_comp"], request_len_array, y_label="总等待计算时间", fig_name="total_request_wait_for_comp",algos = ["PPO","DQN", "Dep-Wait", "Dep-Eft"])
 
     # plot_results(results["pending_download_time"], request_len_array, "总等待下载时间对比")
 
@@ -458,14 +458,14 @@ def plot_machine_distribution(data: dict, title="机器分布"):
     # 4. 设置图表属性
     ax.set_ylabel('函数数量')
     ax.set_xlabel('机器编号')
-    ax.set_title(title)
+    # ax.set_title(title)
     ax.set_xticks(x + 2.5*width)
-    ax.set_xticklabels([f'Machine {i+1}' for i in range(num_machines)])
+    ax.set_xticklabels([f'{i+1}' for i in range(num_machines)])
     ax.legend()
     ax.grid(True, linestyle='--', alpha=0.7)
     
     # 5. 保存图表
-    plt.savefig('machine_distribution.pdf')
+    plt.savefig('machine_distribution.pdf',bbox_inches='tight',)
     plt.close()
 
 
@@ -618,12 +618,12 @@ def different_expel_strategy_all_test(seed=0, trait=True):
         #     "Popularity": scheduler_mapping["DQN"](config_path="config/dqn.yaml"),
         #     "Priority": scheduler_mapping["DQN"](config_path="config/dqn.yaml")
         # },
-        # "PPO": {
-        #     "FCFS": scheduler_mapping["PPO"](config_path="config/ppo.yaml"),
-        #     "LRU": scheduler_mapping["PPO"](config_path="config/ppo.yaml"),
-        #     "Popularity": scheduler_mapping["PPO"](config_path="config/ppo.yaml"),
-        #     "Priority": scheduler_mapping["PPO"](config_path="config/ppo.yaml")
-        # },
+        "PPO": {
+            "FCFS": scheduler_mapping["PPO"](config_path="config/ppo.yaml"),
+            "LRU": scheduler_mapping["PPO"](config_path="config/ppo.yaml"),
+            "Popularity": scheduler_mapping["PPO"](config_path="config/ppo.yaml"),
+            "Priority": scheduler_mapping["PPO"](config_path="config/ppo.yaml")
+        },
         # "Dep-Eft": {
         #         "FCFS": scheduler_mapping["Dep-Eft"](**scheduler["Dep-Eft"]),
         #         "LRU": scheduler_mapping["Dep-Eft"](**scheduler["Dep-Eft"]),
@@ -636,12 +636,12 @@ def different_expel_strategy_all_test(seed=0, trait=True):
         #     "Popularity": scheduler_mapping["Dep-Wait"](**scheduler["Dep-Wait"]),
         #     "Priority": scheduler_mapping["Dep-Wait"](**scheduler["Dep-Wait"]),
         # },
-        "PPO": {
-            "FCFS": scheduler_mapping["PPO"](config_path="config/ppo-fcfs.yaml"),
-            "LRU": scheduler_mapping["PPO"](config_path="config/ppo-lru.yaml"),
-            "Popularity": scheduler_mapping["PPO"](config_path="config/ppo-popularity.yaml"),
-            "Priority": scheduler_mapping["PPO"](config_path="config/ppo.yaml")
-        },
+        # "PPO": {
+        #     "FCFS": scheduler_mapping["PPO"](config_path="config/ppo-fcfs.yaml"),
+        #     "LRU": scheduler_mapping["PPO"](config_path="config/ppo-lru.yaml"),
+        #     "Popularity": scheduler_mapping["PPO"](config_path="config/ppo-popularity.yaml"),
+        #     "Priority": scheduler_mapping["PPO"](config_path="config/ppo.yaml")
+        # },
         # "DQN": {
         #     "FCFS": scheduler_mapping["DQN"](config_path="config/dqn-fcfs.yaml"),
         #     "LRU": scheduler_mapping["DQN"](config_path="config/dqn-lru.yaml"),
@@ -781,12 +781,12 @@ if __name__ == "__main__":
     # xanadu_different_predeploy_degree()
 
     # all_metric_pic(trait=False)
-    # cdf(trait=True)
-    # machine_distribution(trait=True)
+    # cdf(trait=False)
+    # machine_distribution(trait=False)
     # loss_pic()
 
-    # different_expel_strategy_all_test(trait=True)
+    different_expel_strategy_all_test(trait=True)
 
-    predeploy_test(trait=True)
+    # predeploy_test(trait=False)
 
-    # difference()
+    # difference() 

@@ -108,31 +108,30 @@ def sensitive_experiment(sensitive_params
 sensitive_experiment(sensitive_params=_func_comp
                         , param_name="_func_comp"
                         , human_name="平均计算消耗"
-                        , trait=True)
+                        , trait=False)
 
 sensitive_experiment(sensitive_params=_d
                         , param_name="_d"
                         , human_name="平均数据传输大小"
-                        , trait=True)
+                        , trait=False)
 
 sensitive_experiment(sensitive_params=_edge_delay
                         , param_name="_edge_delay"
                         , human_name="平均数据传输延迟"
-                        , trait=True)
+                        , trait=False)
 
 sensitive_experiment(sensitive_params=_gamma
                         , param_name="_gamma"
                         , human_name="平均镜像拉取延迟"
-                        , trait=True)
+                        , trait=False)
 
 sensitive_experiment(sensitive_params=num_containers
                         , param_name="num_containers"
                         , human_name="容器数量"
-                        , trait=True)
+                        , trait=False)
 
 sensitive_experiment(sensitive_params=num_layers
                         , param_name="num_layers"
                         , human_name="镜像层数量"
-                         , trait=True)
-
+                         , trait=False)
 
