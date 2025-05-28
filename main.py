@@ -101,6 +101,15 @@ markers = {
     'Dep-Wait': 'p'  # 五角星
 }
 
+linestyles = {
+    'PPO': 'solid',                    # 实线
+    'DQN': (0, (5, 1)),               # 长虚线         
+    'Dep-Wait': (0, (3, 1, 1, 1)),    # 短线-点-点 
+    'Dep-Down': 'dotted',              #点线
+    'Random':  'dashed',             # 虚线
+    'Dep-Eft': 'dashdot',            # 点划线
+}
+
 def report(infos:dict, verbose = False):
     tasks_execution_info = infos["tasks_execution_info"]
     machines_info = infos["machines_info"]
@@ -196,6 +205,8 @@ def plot_results(results: dict, x_values: list, x_label: str = "请求数量", y
         line = plt.plot(x[normal_points], y[normal_points], 
                        marker=markers.get(algo_name, 'o'),
                        color=color,
+                       linestyle = linestyles.get(algo_name, 'solid'),
+                       linewidth = 3,
                        label=algo_name)[0]
         
         if any(over_threshold):
@@ -219,7 +230,7 @@ def plot_results(results: dict, x_values: list, x_label: str = "请求数量", y
                            textcoords='offset points',
                            ha='right',
                            va='center',
-                           fontsize=12,
+                           fontsize=15,
                            color=color)
     
     # plt.title(title)
@@ -317,7 +328,7 @@ def plot_cdf(results: dict, algos = ["PPO","DQN", "Dep-Wait", "Dep-Eft"]):
         p = np.arange(1, len(sorted_data) + 1) / len(sorted_data)
         
         # 绘制CDF线
-        plt.plot(sorted_data, p, label=scheduler_name, color=colors[scheduler_name], linewidth=2)
+        plt.plot(sorted_data, p, label=scheduler_name, color=colors[scheduler_name], linewidth=3)
     
     # 设置图表属性
     plt.xlabel('完成时间')
@@ -555,14 +566,22 @@ def plot_storage_comparison(results: dict, x_values: list, sched: str):
         'Priority': 'D',   # 菱形
         # 'prioritysmall': 'p'   # 菱形
     }
+
+    linestyles = {
+        'Priority': 'solid',                    # 实线
+        'Popularity': (0, (5, 1)),      # 长虚线         
+        'LRU': (0, (3, 1, 1, 1)),      # 短线-点-点 
+        'FCFS': 'dotted',              #点线
+    }
     
     # 画出每个存储策略的曲线
     for storage_name, values in results.items():
         plt.plot(x_values, values,
                 marker=storage_markers.get(storage_name, 'o'),
                 color=storage_colors.get(storage_name, '#1f77b4'),
+                linestyle=linestyles.get(storage_name, 'solid'),
                 label=storage_name,
-                linewidth=2,
+                linewidth=3,
                 markersize=8)
     
     plt.xlabel('请求数量')
@@ -618,12 +637,12 @@ def different_expel_strategy_all_test(seed=0, trait=True):
         #     "Popularity": scheduler_mapping["DQN"](config_path="config/dqn.yaml"),
         #     "Priority": scheduler_mapping["DQN"](config_path="config/dqn.yaml")
         # },
-        "PPO": {
-            "FCFS": scheduler_mapping["PPO"](config_path="config/ppo.yaml"),
-            "LRU": scheduler_mapping["PPO"](config_path="config/ppo.yaml"),
-            "Popularity": scheduler_mapping["PPO"](config_path="config/ppo.yaml"),
-            "Priority": scheduler_mapping["PPO"](config_path="config/ppo.yaml")
-        },
+        # "PPO": {
+        #     "FCFS": scheduler_mapping["PPO"](config_path="config/ppo.yaml"),
+        #     "LRU": scheduler_mapping["PPO"](config_path="config/ppo.yaml"),
+        #     "Popularity": scheduler_mapping["PPO"](config_path="config/ppo.yaml"),
+        #     "Priority": scheduler_mapping["PPO"](config_path="config/ppo.yaml")
+        # },
         # "Dep-Eft": {
         #         "FCFS": scheduler_mapping["Dep-Eft"](**scheduler["Dep-Eft"]),
         #         "LRU": scheduler_mapping["Dep-Eft"](**scheduler["Dep-Eft"]),
@@ -642,12 +661,12 @@ def different_expel_strategy_all_test(seed=0, trait=True):
         #     "Popularity": scheduler_mapping["PPO"](config_path="config/ppo-popularity.yaml"),
         #     "Priority": scheduler_mapping["PPO"](config_path="config/ppo.yaml")
         # },
-        # "DQN": {
-        #     "FCFS": scheduler_mapping["DQN"](config_path="config/dqn-fcfs.yaml"),
-        #     "LRU": scheduler_mapping["DQN"](config_path="config/dqn-lru.yaml"),
-        #     "Popularity": scheduler_mapping["DQN"](config_path="config/dqn-popularity.yaml"),
-        #     "Priority": scheduler_mapping["DQN"](config_path="config/dqn.yaml")
-        # },
+        "DQN": {
+            "FCFS": scheduler_mapping["DQN"](config_path="config/dqn-fcfs.yaml"),
+            "LRU": scheduler_mapping["DQN"](config_path="config/dqn-lru.yaml"),
+            "Popularity": scheduler_mapping["DQN"](config_path="config/dqn-popularity.yaml"),
+            "Priority": scheduler_mapping["DQN"](config_path="config/dqn.yaml")
+        },
     }
 
     for sched,schedulerMapping in scheds.items():
@@ -671,14 +690,23 @@ def plot_predeploy_comparison(results: dict, x_values: list, sched: str):
         'D',   # 菱形
         '^', # 三角形
     ]
+
+    linestyles = [
+        (0, (5, 1)),        # 长虚线         
+        (0, (3, 1, 1, 1)),  # 短线-点-点 
+        'solid',            # 实线
+        'dotted',           # 点线
+    ]
+    
     
     # 画出每个存储策略的曲线
     for i, (name, values) in enumerate(results.items()):
         plt.plot(x_values, values,
                 marker=markers[i],
                 color=colors[i],
+                linestyle=linestyles[i],
                 label=name,
-                linewidth=2,
+                linewidth=3,
                 markersize=8)
     
     plt.xlabel('请求数量')
@@ -780,12 +808,12 @@ if __name__ == "__main__":
     # test0()
     # xanadu_different_predeploy_degree()
 
-    # all_metric_pic(trait=False)
+    all_metric_pic(trait=False)
     # cdf(trait=False)
     # machine_distribution(trait=False)
     # loss_pic()
 
-    different_expel_strategy_all_test(trait=True)
+    # different_expel_strategy_all_test(trait=False)
 
     # predeploy_test(trait=False)
 
